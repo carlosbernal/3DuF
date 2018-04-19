@@ -25,6 +25,11 @@ let transposerButton = document.getElementById("transposer_button");
 let rotarymixerButton = document.getElementById("rotarymixer_button");
 let dropletgenButton = document.getElementById("dropletgen_button");
 let celltraplButton = document.getElementById("celltrapl_button");
+let revertdefaultsButton = document.getElementById("revertdefaults_button");
+
+let alignmentMarksButton = document.getElementById("alignmentmarks_button");
+
+let alignmentMarksParams = document.getElementById("alignmentmarks_params_button");
 
 let channelParams = document.getElementById("channel_params_button");
 let roundedChannelParams = document.getElementById("roundedchannel_params_button");
@@ -92,7 +97,8 @@ let buttons = {
     "Transposer":transposerButton,
     "RotaryMixer":rotarymixerButton,
     "DropletGen": dropletgenButton,
-    "CellTrapL": celltraplButton
+    "CellTrapL": celltraplButton,
+    "AlignmentMarks": alignmentMarksButton
 }
 
 let layerButtons = {
@@ -213,6 +219,15 @@ function setupAppPage() {
         setActiveButton("Channel");
         switchTo2D();
     };
+    revertdefaultsButton.onclick = function() {
+        Registry.viewManager.revertFeaturesToDefaults(Registry.viewManager.view.getSelectedFeatures());
+
+    }
+/*
+    copyButton.onclick = function() {
+
+    }
+*/
     roundedChannelButton.onclick = function() {
         Registry.viewManager.activateTool("RoundedChannel");
         let bg = Colors.getDefaultFeatureColor("RoundedChannel", "Basic", Registry.currentLayer);
@@ -235,6 +250,13 @@ function setupAppPage() {
         Registry.viewManager.activateTool("Valve3D");
         let bg = Colors.getDefaultFeatureColor("Valve3D", "Basic", Registry.currentLayer);
         setActiveButton("Valve3D");
+        switchTo2D();
+    };
+
+    alignmentMarksButton.onclick = function() {
+        Registry.viewManager.activateTool("AlignmentMarks");
+        let bg = Colors.getDefaultFeatureColor("AlignmentMarks", "Basic", Registry.currentLayer);
+        setActiveButton("AlignmentMarks");
         switchTo2D();
     };
 
@@ -326,6 +348,9 @@ function setupAppPage() {
         setActiveButton("CellTrapL");
         switchTo2D();
     };
+    //copyButton.onclick = function() {
+
+    //}
 
     flowButton.onclick = function() {
         if (threeD) {
@@ -356,14 +381,9 @@ function setupAppPage() {
         Registry.currentLayer = Registry.currentDevice.layers[2];
         setActiveLayer("2");
         Registry.viewManager.updateActiveLayer();
+        console.log("Adaptive Grid Min Spacing: " + Registry.currentGrid.minSpacing);
+        console.log("Adaptive Grid Max Spacing: " + Registry.currentGrid.maxSpacing);
 
-    }
-
-    jsonButton.onclick = function() {
-        let json = new Blob([JSON.stringify(Registry.currentDevice.toJSON())], {
-            type: "application/json"
-        });
-        saveAs(json, "device.json");
     }
 
     interchangeV1Button.onclick = function() {
@@ -440,6 +460,7 @@ function setupAppPage() {
     dropletgenParams.onclick = paramsWindowFunction("DropletGen", "Basic");
     transitionParams.onclick = paramsWindowFunction("Transition", "Basic");
     celltraplParams.onclick = paramsWindowFunction("CellTrapL", "Basic");
+    alignmentMarksParams.onclick = paramsWindowFunction("AlignmentMarks", "Basic");
 
     function setupDragAndDropLoad(selector) {
         let dnd = new HTMLUtils.DnDFileController(selector, function(files) {

@@ -20,45 +20,101 @@ class ViewManager {
         this.updateQueue = new SimpleQueue(function() {
             reference.view.refresh();
         }, 20);
+
         this.saveQueue = new SimpleQueue(function() {
             reference.saveToStorage();
-        })
+        });
+
+        this.undoStack = [];
         window.onkeydown = function(event) {
             let key = event.keyCode || event.which;
             if (key == 46) {
                 event.preventDefault();
             }
-        }
+        };
+
         this.view.setKeyDownFunction(function(event) {
             let key = event.keyCode || event.which;
+
             if (key == 46 || key == 8) {
                 reference.view.deleteSelectedFeatures();
+            }
+
+            if ((event.ctrlKey || event.metaKey) && key == 67) {
+                console.log("Ctl c detected");
+                let selectedFeatures = reference.view.getSelectedFeatures();
+                if (selectedFeatures.length > 0) {
+                    reference.activateTool(selectedFeatures[0].getType())
+                }
+
+            }
+
+            if ((event.ctrlKey || event.metaKey) && key == 88) {
+                console.log("Ctl x detected");
+                let selectedFeatures = reference.view.getSelectedFeatures();
+                if (selectedFeatures.length > 0) {
+                    reference.activateTool(selectedFeatures[0].getType());
+                    reference.removeFeature(selectedFeatures[0]);
+                }
+
             }
 
             if(key == 37){
                 //console.log("left arrow");
                 reference.view.moveCenter(new paper.Point(1000,0));
                 reference.updateGrid();
+                reference.view.updateAlignmentMarks();
             }
+
             if(key == 38){
                 //console.log("Up arrow");
                 reference.view.moveCenter(new paper.Point(0,1000));
                 reference.updateGrid();
+                reference.view.updateAlignmentMarks();
+
             }
+
             if(key == 39){
                 //console.log("right arrow");
                 reference.view.moveCenter(new paper.Point(-1000,0));
                 reference.updateGrid();
+                reference.view.updateAlignmentMarks();
+
             }
+
             if(key == 40){
                 //console.log("down arrow");
                 reference.view.moveCenter(new paper.Point(0,-1000));
                 reference.updateGrid();
+                reference.view.updateAlignmentMarks();
+
             }
+
+            if(key == 70){
+                //Reset the view
+                reference.view.initializeView();
+                reference.updateGrid();
+                reference.view.updateAlignmentMarks();
+            }
+
+            if(key == 27){
+                //Deselect all
+                paper.project.deselectAll()
+
+            }
+
+            if ((event.ctrlKey || event.metaKey) && key == 65) {
+                //Select all
+                reference.view.selectAllActive();
+                return false;
+            }
+
         });
 
         this.view.setResizeFunction(function() {
             reference.updateGrid();
+            reference.updateAlignmentMarks();
+
             reference.updateDevice(Registry.currentDevice);
         });
 
@@ -201,6 +257,10 @@ class ViewManager {
         }
     }
 
+    updateAlignmentMarks(){
+        this.view.updateAlignmentMarks();
+    }
+
     clear() {
         this.view.clear();
     }
@@ -210,6 +270,8 @@ class ViewManager {
         else if (zoom < this.minZoom) zoom = this.minZoom;
         this.view.setZoom(zoom);
         this.updateGrid(false);
+        this.updateAlignmentMarks();
+
         this.updateDevice(Registry.currentDevice, false);
         this.__updateViewTarget(false);
         this.refresh(refresh);
@@ -221,11 +283,13 @@ class ViewManager {
 
     updateTarget(featureType, featureSet, position, refresh = true) {
         this.view.addTarget(featureType, featureSet, position);
+        this.view.updateAlignmentMarks();
         this.refresh(refresh);
     }
 
     __updateViewTarget(refresh = true) {
         this.view.updateTarget();
+        this.updateAlignmentMarks();
         this.refresh(refresh);
     }
 
@@ -235,6 +299,8 @@ class ViewManager {
         if (!aboveMax && !belowMin) {
             this.view.adjustZoom(delta, point);
             this.updateGrid(false);
+            //this.updateAlignmentMarks();
+
             this.updateDevice(Registry.currentDevice, false);
             this.__updateViewTarget(false);
         } else {
@@ -246,6 +312,8 @@ class ViewManager {
     setCenter(center, refresh = true) {
         this.view.setCenter(center);
         this.updateGrid(false);
+        //this.updateAlighmentMarks();
+
         this.updateDevice(Registry.currentDevice, false);
         this.refresh(refresh);
     }
@@ -253,6 +321,8 @@ class ViewManager {
     moveCenter(delta, refresh = true) {
         this.view.moveCenter(delta);
         this.updateGrid(false);
+        // this.updateAlignmentMarks();
+
         this.updateDevice(Registry.currentDevice, false);
         this.refresh(refresh);
     }
@@ -410,7 +480,20 @@ class ViewManager {
             this.updateDefault(feature.getType(), feature.getSet(), key, feature.getValue(key));
         }
     }
-
+    revertFieldToDefault(valueString, feature) {
+        feature.updateParameter(valueString, Registry.featureDefaults[feature.getSet()][feature.getType()][valueString]);
+    }
+    revertFeatureToDefaults(feature) {
+        let heritable = feature.getHeritableParams();
+        for (let key in heritable) {
+            this.revertFieldToDefault(key, feature);
+        }
+    }
+    revertFeaturesToDefaults(features) {
+        for (let feature in features) {
+            this.revertFeatureToDefaults(feature);
+        }
+    }
     hitFeature(point) {
         return this.view.hitFeature(point);
     }
@@ -452,6 +535,7 @@ class ViewManager {
         this.tools["CellTrapL"] = new CellPositionTool("CellTrapL", "Basic");
         this.tools["DropletGen"] = new PositionTool("DropletGen", "Basic");
         this.tools["Transition"] = new PositionTool("Transition", "Basic");
+        this.tools["AlignmentMarks"] = new MultilayerPositionTool("AlignmentMarks", "Basic");
     }
 }
 
