@@ -7,8 +7,10 @@ var PanAndZoom = require("./PanAndZoom");
 var SelectTool = require("./tools/selectTool");
 var SimpleQueue = require("../utils/SimpleQueue");
 var PositionTool = require("./tools/positionTool");
+var ComponentPositionTool = require("./tools/ComponentPositionTool");
 var MultilayerPositionTool = require('./tools/multilayerPositionTool');
 var CellPositionTool = require('./tools/cellPositionTool');
+var MouseSelectTool = require('./tools/mouseSelectTool');
 
 class ViewManager {
     constructor(view) {
@@ -514,26 +516,29 @@ class ViewManager {
     }
 
     setupTools() {
+        this.tools["MouseSelectTool"] = new MouseSelectTool();
         this.tools["Chamber"] = new ChannelTool("Chamber", "Basic");
-        this.tools["Valve"] = new PositionTool("Valve", "Basic");
+        this.tools["Valve"] = new ComponentPositionTool("Valve", "Basic");
         this.tools["Channel"] = new ChannelTool("Channel", "Basic");
         this.tools["RoundedChannel"] = new ChannelTool("RoundedChannel", "Basic");
-        this.tools["Node"] = new PositionTool("Node", "Basic");
-        this.tools["CircleValve"] = new PositionTool("CircleValve", "Basic");
-        this.tools["RectValve"] = new PositionTool("RectValve", "Basic");
+        this.tools["Node"] = new ComponentPositionTool("Node", "Basic");
+        this.tools["CircleValve"] = new ComponentPositionTool("CircleValve", "Basic");
+        this.tools["RectValve"] = new ComponentPositionTool("RectValve", "Basic");
         this.tools["Valve3D"] = new MultilayerPositionTool("Valve3D", "Basic");
-        this.tools["Port"] = new PositionTool("Port", "Basic");
+        this.tools["Port"] = new ComponentPositionTool("Port", "Basic");
         this.tools["Via"] = new PositionTool("Via", "Basic");
-        this.tools["DiamondReactionChamber"] = new PositionTool("DiamondReactionChamber", "Basic");
-        this.tools["BetterMixer"] = new PositionTool("BetterMixer", "Basic");
-        this.tools["CurvedMixer"] = new PositionTool("CurvedMixer", "Basic");
-        this.tools["Mixer"] = new PositionTool("Mixer", "Basic");
-        this.tools["Tree"] = new PositionTool("Tree", "Basic");
+        this.tools["DiamondReactionChamber"] = new ComponentPositionTool("DiamondReactionChamber", "Basic");
+        this.tools["BetterMixer"] = new ComponentPositionTool("BetterMixer", "Basic");
+        this.tools["CurvedMixer"] = new ComponentPositionTool("CurvedMixer", "Basic");
+        this.tools["Mixer"] = new ComponentPositionTool("Mixer", "Basic");
+        this.tools["GradientGenerator"] = new ComponentPositionTool("GradientGenerator", "Basic");
+        this.tools["Tree"] = new ComponentPositionTool("Tree", "Basic");
+        this.tools["YTree"] = new ComponentPositionTool("YTree", "Basic");
         this.tools["Mux"] = new MultilayerPositionTool("Mux", "Basic");
         this.tools["Transposer"] = new MultilayerPositionTool("Transposer", "Basic");
         this.tools["RotaryMixer"] = new MultilayerPositionTool("RotaryMixer", "Basic");
         this.tools["CellTrapL"] = new CellPositionTool("CellTrapL", "Basic");
-        this.tools["DropletGen"] = new PositionTool("DropletGen", "Basic");
+        this.tools["DropletGen"] = new ComponentPositionTool("DropletGen", "Basic");
         this.tools["Transition"] = new PositionTool("Transition", "Basic");
         this.tools["AlignmentMarks"] = new MultilayerPositionTool("AlignmentMarks", "Basic");
     }

@@ -6,6 +6,10 @@ var ParameterMenu = require("./UI/parameterMenu");
 
 let activeButton = null;
 let activeLayer = null;
+
+let selectToolButton = document.getElementById("select_button");
+let saveDeviceSettingsButton = document.getElementById("accept_resize_button");
+
 let channelButton = document.getElementById("channel_button");
 let roundedChannelButton = document.getElementById("roundedchannel_button");
 let transitionButton = document.getElementById("transition_button");
@@ -19,13 +23,16 @@ let diamondButton = document.getElementById("diamond_button");
 let bettermixerButton = document.getElementById("bettermixer_button");
 let curvedmixerButton = document.getElementById("curvedmixer_button");
 let mixerButton = document.getElementById("mixer_button");
+let gradientGeneratorButton = document.getElementById("gradientgenerator_button");
 let treeButton = document.getElementById("tree_button");
+let ytreeButton = document.getElementById("ytree_button");
 let muxButton = document.getElementById("mux_button");
 let transposerButton = document.getElementById("transposer_button");
 let rotarymixerButton = document.getElementById("rotarymixer_button");
 let dropletgenButton = document.getElementById("dropletgen_button");
 let celltraplButton = document.getElementById("celltrapl_button");
 let revertdefaultsButton = document.getElementById("revertdefaults_button");
+
 
 let alignmentMarksButton = document.getElementById("alignmentmarks_button");
 
@@ -44,7 +51,9 @@ let diamondParams = document.getElementById("diamond_params_button");
 let bettermixerParams = document.getElementById("bettermixer_params_button");
 let curvedmixerParams = document.getElementById("curvedmixer_params_button");
 let mixerParams = document.getElementById("mixer_params_button");
+let gradientGeneratorParams = document.getElementById("gradientgenerator_params_button");
 let treeParams = document.getElementById("tree_params_button");
+let ytreeParams = document.getElementById("ytree_params_button");
 let muxParams = document.getElementById("mux_params_button");
 let transposerParams = document.getElementById("transposer_params_button");
 let rotarymixerParams = document.getElementById("rotarymixer_params_button");
@@ -79,6 +88,7 @@ let view;
 let threeD = false;
 
 let buttons = {
+    "SelectButton": selectToolButton,
     "Channel": channelButton,
     "RoundedChannel": roundedChannelButton,
     "Transition": transitionButton,
@@ -92,7 +102,9 @@ let buttons = {
     "BetterMixer": bettermixerButton,
     "CurvedMixer": curvedmixerButton,
     "Mixer": mixerButton,
+    "GradientGenerator": gradientGeneratorButton,
     "Tree": treeButton,
+    "YTree": ytreeButton,
     "Mux":muxButton,
     "Transposer":transposerButton,
     "RotaryMixer":rotarymixerButton,
@@ -128,7 +140,11 @@ function setButtonColor(button, background, text) {
 
 function setActiveButton(feature) {
     killParamsWindow();
-    if (activeButton) setButtonColor(buttons[activeButton], inactiveBackground, inactiveText);
+    if (activeButton == selectToolButton){
+        setButtonColor(activeButton, inactiveBackground, inactiveText);
+    } else if (activeButton) {
+        setButtonColor(buttons[activeButton], inactiveBackground, inactiveText);
+    }
     activeButton = feature;
     let color = Colors.getDefaultFeatureColor(activeButton, "Basic", Registry.currentLayer);
     setButtonColor(buttons[activeButton], color, activeText);
@@ -197,8 +213,8 @@ function switchTo2D() {
     }
 }
 
-function paramsWindowFunction(typeString, setString) {
-    var makeTable = ParameterMenu.generateTableFunction("parameter_menu", typeString, setString);
+function paramsWindowFunction(typeString, setString, isTranslucent = false) {
+    var makeTable = ParameterMenu.generateTableFunction("parameter_menu", typeString, setString , isTranslucent);
     return function(event) {
         killParamsWindow();
         makeTable(event);
@@ -219,10 +235,52 @@ function setupAppPage() {
         setActiveButton("Channel");
         switchTo2D();
     };
+
+    selectToolButton.onclick = function(){
+        Registry.viewManager.activateTool("MouseSelectTool");
+        if (activeButton) setButtonColor(buttons[activeButton], inactiveBackground, inactiveText);
+        activeButton = buttons["SelectButton"];
+        setButtonColor(buttons["SelectButton"], Colors.DEEP_PURPLE_500, activeText);
+    };
+
+    saveDeviceSettingsButton.onclick = function(){
+
+        //Save the name
+        let devicename = document.getElementById("devicename_textinput").value;
+        if(devicename != "" || devicename != null){
+            console.log("test");
+            Registry.currentDevice.setName(devicename);
+        }
+
+        //Do the resizing
+        let xspan = document.getElementById("xspan_textinput").value;
+        let yspan = document.getElementById("yspan_textinput").value;
+        console.log("Resizing the device to: " + xspan + ", " +yspan);
+
+        if(xspan != "" && yspan != ""){
+
+            //Convert the dimensions to microns from mm
+            Registry.currentDevice.setXSpan(xspan*1000);
+            Registry.currentDevice.setYSpan(yspan*1000);
+
+            //Close the dialog
+            var dialog = document.querySelector('dialog');
+            dialog.close();
+
+            //Refresh the view
+            Registry.viewManager.view.initializeView();
+            Registry.viewManager.view.refresh();
+            // Registry.viewManager.view.updateGrid();
+            Registry.viewManager.view.updateAlignmentMarks();
+        }
+
+    };
+
+
     revertdefaultsButton.onclick = function() {
         Registry.viewManager.revertFeaturesToDefaults(Registry.viewManager.view.getSelectedFeatures());
 
-    }
+    };
 /*
     copyButton.onclick = function() {
 
@@ -312,10 +370,24 @@ function setupAppPage() {
         setActiveButton("Mixer");
         switchTo2D();
     };
+
+    gradientGeneratorButton.onclick = function(){
+        Registry.viewManager.activateTool("GradientGenerator");
+        let bg = Colors.getDefaultFeatureColor("GradientGenerator", "Basic", Registry.currentLayer);
+        setActiveButton("GradientGenerator");
+        switchTo2D();
+    };
+
     treeButton.onclick = function() {
         Registry.viewManager.activateTool("Tree");
         let bg = Colors.getDefaultFeatureColor("Tree", "Basic", Registry.currentLayer);
         setActiveButton("Tree");
+        switchTo2D();
+    };
+    ytreeButton.onclick = function() {
+        Registry.viewManager.activateTool("YTree");
+        let bg = Colors.getDefaultFeatureColor("YTree", "Basic", Registry.currentLayer);
+        setActiveButton("YTree");
         switchTo2D();
     };
     muxButton.onclick = function() {
@@ -453,7 +525,9 @@ function setupAppPage() {
     bettermixerParams.onclick = paramsWindowFunction("BetterMixer", "Basic");
     curvedmixerParams.onclick = paramsWindowFunction("CurvedMixer", "Basic");
     mixerParams.onclick = paramsWindowFunction("Mixer", "Basic");
+    gradientGeneratorParams.onclick = paramsWindowFunction("GradientGenerator", "Basic");
     treeParams.onclick = paramsWindowFunction("Tree", "Basic");
+    ytreeParams.onclick = paramsWindowFunction("YTree", "Basic");
     muxParams.onclick = paramsWindowFunction("Mux", "Basic");
     transposerParams.onclick = paramsWindowFunction("Transposer", "Basic");
     rotarymixerParams.onclick = paramsWindowFunction("RotaryMixer", "Basic");

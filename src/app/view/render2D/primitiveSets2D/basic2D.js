@@ -475,7 +475,7 @@ var Transposer = function(params){
     transposer_flow.rotate(rotation,
         px + 3*valvespacing + 1.5*channelWidth + 2*radius,
         py + channelWidth + 2*valvespacing + 2*radius
-        );
+    );
 
     return transposer_flow;
 };
@@ -1771,6 +1771,128 @@ var MixerTarget = function(params){
     return serpentine;
 };
 
+/**********************************************************************/
+
+
+var GradientGenerator = function(params){
+    position = params["position"];
+    bendSpacing = params["bendSpacing"];
+    numBends = params["numberOfBends"];
+    channelWidth = params["channelWidth"];
+    bendLength = params["bendLength"];
+    orientation = params["orientation"];
+    invalue = params["in"];
+    outvalue = params["out"];
+    spacing = params["spacing"]; //Center to Center
+    let rotation = params["rotation"];
+    let color = params["color"];
+
+    let posx = position[0];
+    let posy = position[1];
+    let stagelength = channelWidth * (2*numBends + 1) + (2*numBends + 2) * bendSpacing + channelWidth;
+    console.log(posx, posy);
+    let gradientgenerator = new paper.CompoundPath();
+    // insertMixer(gradientgenerator, bendSpacing, numBends, channelWidth, bendLength, posx, posy, color);
+    //Iterate through each of the stages
+    console.log(invalue, outvalue);
+    for(var stagevalue = invalue; stagevalue <= outvalue; stagevalue++){
+        //For each stage : do the following
+        /*
+        Check if each stagevalue is odd or even
+
+        if (not last stage) place horizontal bar connecting eveything
+         */
+
+        //Calculate the total width and start placing mixers
+        let totalstagewidth = (stagevalue - 1)*spacing;
+
+        let xref = (posx - totalstagewidth/2);
+        let yref = posy + stagelength * (stagevalue - invalue);
+
+        console.log("STage" , stagevalue, xref, yref);
+
+        //Start from the left
+        for(var i = 0; i < stagevalue; i++){
+            let x = xref + spacing*i;
+
+            let y = yref;
+            console.log("Stage X", x);
+            //insert the mixer
+            insertMixer(gradientgenerator, bendSpacing, numBends, channelWidth, bendLength, x, y, color);
+
+        }
+
+        // Insert horizontal bar
+        let hbar = new paper.Path.Rectangle({
+            point: new paper.Point(xref, yref),
+            size: [totalstagewidth, channelWidth],
+            fillColor: color,
+            strokeWidth:0
+        });
+
+        gradientgenerator.addChild(hbar);
+    }
+
+    gradientgenerator.fillColor = color;
+    // console.log("testing");
+    console.log(gradientgenerator);
+
+    gradientgenerator.rotate(-rotation, new paper.Point(posx, posy));
+
+    return gradientgenerator;
+};
+
+var GradientGeneratorTarget = function(params){
+    let ret = GradientGenerator(params);
+    ret.fillColor.opacity = 0.5;
+    return ret;
+};
+
+var insertMixer = function(serpentine, bendSpacing, numBends, channelWidth, bendLength, x, y, color){
+    // position = params["position"];
+    // bendSpacing = params["bendSpacing"];
+    // numBends = params["numberOfBends"];
+    // channelWidth = params["channelWidth"];
+    // bendLength = params["bendLength"];
+    // orientation = params["orientation"];
+    // let color = params["color"];
+    // var serpentine = new paper.CompoundPath();
+    //draw first segment
+    let segHalf = bendLength/2 + channelWidth;
+    let segLength = bendLength + 2*channelWidth;
+    let segBend = bendSpacing + 2*channelWidth;
+    let vRepeat = 2*bendSpacing + 2*channelWidth;
+    let vOffset = bendSpacing + channelWidth;
+    let hOffset = bendLength/2 + channelWidth/2;
+
+    x -= hOffset;
+    //TopRectangle
+    serpentine.addChild(new paper.Path.Rectangle(x+hOffset, y, channelWidth, 2*channelWidth+ bendSpacing));
+    y += channelWidth +bendSpacing;
+    serpentine.addChild(new paper.Path.Rectangle(x, y, segHalf + channelWidth/2, channelWidth));
+    for(i = 0; i < numBends; i++){
+        serpentine.addChild(new paper.Path.Rectangle(x, y+vRepeat*i, channelWidth, segBend));
+        serpentine.addChild(new paper.Path.Rectangle(x, y+vOffset+vRepeat*i, segLength, channelWidth));
+        serpentine.addChild(new paper.Path.Rectangle(x+channelWidth+ bendLength, y+vOffset+vRepeat*i, channelWidth, segBend));
+        if (i == numBends-1){//draw half segment to close
+            serpentine.addChild(new paper.Path.Rectangle(x+hOffset, y+vRepeat*(i+1), segHalf, channelWidth));
+        } else{//draw full segment
+            serpentine.addChild(new paper.Path.Rectangle(x, y+vRepeat*(i+1), segLength, channelWidth));
+        }
+    }
+
+    //Bottom rectabvke
+    serpentine.addChild(new paper.Path.Rectangle(x+hOffset, y+vRepeat*(numBends), channelWidth, 2*channelWidth+ bendSpacing));
+
+
+    return serpentine;
+};
+
+
+/**********************************************************************/
+
+
+
 var Transition = function(params) {
     position = params["position"];
     cw1 = params["cw1"];
@@ -2199,6 +2321,136 @@ var MuxTarget = function(params) {
 
 };
 
+
+
+/************************************************/
+var YTree = function(params) {
+    position  = params["position"];
+    cw = params["flowChannelWidth"];
+    orientation = params["orientation"];
+    direction = params["direction"];
+    spacing = params["spacing"];
+    leafs = params["leafs"];
+    color = params["color"];
+    stagelength = params["stageLength"];
+    px = position[0];
+    py = position[1];
+
+    let levels = Math.ceil(Math.log2(leafs));
+    let isodd = false ; //This is used to figure out how many lines have to be made
+    if(leafs%2 == 0){
+        isodd = false;
+    }else{
+        isodd = true;
+    }
+    let w = spacing * (leafs/2 + 1);
+    let l = (levels + 1) * stagelength;
+
+    // console.log("CW: " + cw +  " levels: "+ levels +  " width: " + w + " length: " + l)
+
+    var treepath = new paper.CompoundPath();
+
+    generateYTwig(treepath, px, py, cw, stagelength, w, 1, levels);
+
+
+
+    //Draw the tree
+
+    treepath.fillColor = color;
+    var rotation = 0;
+    // console.log("Orientation: " + orientation);
+    // console.log("Direction: " + direction);
+    if(orientation == "H" && direction=="OUT"){
+        rotation = 180;
+    }else if(orientation == "V" && direction =="IN"){
+        rotation = 270;
+    }else if(orientation == "V" && direction == "OUT"){
+        rotation = 90;
+    }
+    return treepath.rotate(rotation,px,py);
+};
+
+function drawYtwig(treepath, px, py, cw, stagelength, spacing, drawleafs=false) {
+
+    let pivotpoint = new paper.Point(px, py);
+
+    //stem
+    let startPoint = new paper.Point(px - cw/2, py - cw/2);
+
+    let angle = Math.atan(spacing/2 / stagelength);
+
+    let h = spacing/2 / Math.sin(angle) + cw;
+
+    //left leaf
+    let rec = paper.Path.Rectangle({
+        size: [cw, h],
+        point:startPoint,
+        radius:cw/2,
+        fillColor:color,
+        stokeWidth:0
+    });
+    rec.rotate(angle * 180/Math.PI, pivotpoint);
+    treepath.addChild(rec);
+
+    //right leaf
+    rec = paper.Path.Rectangle({
+        size: [cw, h],
+        point:startPoint,
+        radius:cw/2,
+        fillColor:color,
+        stokeWidth:0
+    });
+    rec.rotate(-angle * 180/Math.PI, pivotpoint);
+    treepath.addChild(rec);
+
+    return treepath
+}
+
+function generateYTwig(treepath, px, py,cw, stagelength , newspacing, level, maxlevel, islast=false) {
+    //var newspacing = 2 * (spacing + cw);
+    var hspacing = newspacing/2;
+    var lex = px - 0.5 * newspacing;
+    var ley = py + stagelength ;
+    var rex = px + 0.5 * newspacing ;
+    var rey = py + stagelength ;
+
+    if(level == maxlevel){
+        islast = true;
+        // console.log("Final Spacing: " + newspacing)
+    }
+
+    drawYtwig(treepath, px, py, cw, stagelength, newspacing, islast);
+    // drawtwig(treepath, lex, ley, cw, stagelength, hspacing, islast);
+    // drawtwig(treepath, rex, rey, cw, stagelength, hspacing, islast);
+
+
+    if(!islast){
+        generateYTwig(treepath, lex, ley, cw, stagelength, hspacing, level+1, maxlevel);
+        generateYTwig(treepath, rex, rey, cw, stagelength, hspacing, level+1, maxlevel);
+    }
+}
+
+var YTreeTarget = function(params) {
+
+    let treepath = YTree(params);
+
+    treepath.fillColor = color;
+    treepath.fillColor.alpha = 0.5;
+    var rotation = 0;
+    if(orientation == "H" && direction=="OUT"){
+        rotation = 180;
+    }else if(orientation == "V" && direction =="IN"){
+        rotation = 270;
+    }else if(orientation == "V" && direction == "OUT"){
+        rotation = 90;
+    }
+    return treepath.rotate(rotation,px,py);
+
+};
+
+/************************************************/
+
+
 var CellTrapL = function(params) {
     let orientation = params["orientation"];
     let position = params["position"];
@@ -2291,15 +2543,15 @@ var CellTrapL_cell = function(params) {
             });
             chamberList.addChild(rec);
         }
-/*
-        channels = new paper.Path.Rectangle({
-            point: [x + chamberLength, y],
-            size: [0, numChambers/2*(chamberWidth + chamberSpacing)],
-            fillColor: color,
-            strokeWidth: 0
-        });
-        chamberList.push(channels);
-        */
+        /*
+                channels = new paper.Path.Rectangle({
+                    point: [x + chamberLength, y],
+                    size: [0, numChambers/2*(chamberWidth + chamberSpacing)],
+                    fillColor: color,
+                    strokeWidth: 0
+                });
+                chamberList.push(channels);
+                */
 
     }
     else {
@@ -2313,15 +2565,15 @@ var CellTrapL_cell = function(params) {
             });
             chamberList.addChild(rec);
         }
-/*
-        channels = paper.Path.Rectangle({
-            point: [x, y + chamberLength],
-            size: [numChambers/2*(chamberWidth + chamberSpacing), 0],
-            fillColor: color,
-            strokeWidth: 0
-        });
-        chamberList.push(channels);
-*/
+        /*
+                channels = paper.Path.Rectangle({
+                    point: [x, y + chamberLength],
+                    size: [numChambers/2*(chamberWidth + chamberSpacing), 0],
+                    fillColor: color,
+                    strokeWidth: 0
+                });
+                chamberList.push(channels);
+        */
     }
     chamberList.fillColor = color;
     //traps = new paper.CompoundPath(chamberList);
@@ -2392,83 +2644,168 @@ var CellTrapLTarget = function(params) {
     return traps;
 };
 
+
+/*
+            "orificeSize": "Float",
+            "orificeLength": "Float",
+            "oilInputWidth": "Float",
+            "waterInputWidth": "Float",
+            "outputWidth": "Float",
+            "outputLength": "Float",
+            "height": "Float"
+
+ */
+
 var DropletGen = function(params) {
     let pos = params["position"];
+    let x = pos[0];
+    let y = pos[1];
     let color = params["color"];
-    let A = params["orificeSize"];
-    let B = 4.8*A;
-    let C = 6.71*A;
-    let D = 2.09*A;
-    let E = 4.85*A;
-    //var vertices = [];
-    let v1, v2, v3, v4, v5, v6, v7, v8, v9, v10;
-    v1 = [pos[0] - D/2, pos[1] - A/2];
-    v2 = [pos[0] - A/2, pos[1] - E/2];
-    v3 = [pos[0] + A/2, pos[1] - E/2];
-    v4 = [pos[0] + D/2, pos[1] - A/2];
-    v5 = [pos[0] + D/2 + C, pos[1] - B/2];
-    v6 = [pos[0] + D/2 + C, pos[1] + B/2];
-    v7 = [pos[0] + D/2, pos[1] + A/2];
-    v8 = [pos[0] + A/2, pos[1] + E/2];
-    v9 = [pos[0] - A/2, pos[1] + E/2];
-    v10 = [pos[0] - D/2, pos[1] + A/2];
+    let orificeSize = params["orificeSize"];
+    let orificeLength = params["orificeLength"];
+    let oilInputWidth = params["oilInputWidth"];
+    let waterInputWidth = params["waterInputWidth"];
+    let outputWidth = params["outputWidth"];
+    let outputLength = params["outputLength"];
 
-    var decahedron = new paper.Path();
-    decahedron.add(new paper.Point(v1));
-    decahedron.add(new paper.Point(v2));
-    decahedron.add(new paper.Point(v3));
-    decahedron.add(new paper.Point(v4));
-    decahedron.add(new paper.Point(v5));
-    decahedron.add(new paper.Point(v6));
-    decahedron.add(new paper.Point(v7));
-    decahedron.add(new paper.Point(v8));
-    decahedron.add(new paper.Point(v9));
-    decahedron.add(new paper.Point(v10));
-    decahedron.closed = true;
-    decahedron.fillColor = color;
-    //decahedron.strokeColor = "#FFFFFF";
-    //decahedron.strokeWidth = 3 / paper.view.zoom;
-    return decahedron;
+    let ret = new paper.Path();
+
+    let p1 = new paper.Point(x, y);
+
+    let p2 = new paper.Point(p1.x + oilInputWidth, p1.y);
+
+    let p3 = new paper.Point(p2.x , p2.y + (waterInputWidth/2 - orificeSize/2));
+
+    let p4 = new paper.Point(p3.x + orificeLength, p3.y);
+
+    let p5 = new paper.Point(p4.x, p4.y - (outputWidth/2 - orificeSize/2));
+
+    let p6 = new paper.Point(p5.x + outputLength, p5.y);
+
+    let p7 = new paper.Point(p6.x, p6.y + (outputWidth));
+
+    let p8 = new paper.Point(p7.x - outputLength, p7.y);
+
+    let p9 = new paper.Point(p8.x, p8.y - (outputWidth/2 - orificeSize/2));
+
+    let p10 = new paper.Point(p9.x - orificeLength, p9.y);
+
+    let p11 = new paper.Point(p10.x, p10.y + (waterInputWidth/2 - orificeSize/2));
+
+    let p12 = new paper.Point(p11.x - oilInputWidth, p11.y);
+
+    ret.add(p1);
+    ret.add(p2);
+    ret.add(p3);
+    ret.add(p4);
+    ret.add(p5);
+    ret.add(p6);
+    ret.add(p7);
+    ret.add(p8);
+    ret.add(p9);
+    ret.add(p10);
+    ret.add(p11);
+    ret.add(p12);
+
+    ret.closed = true;
+    ret.fillColor = color;
+    return ret;
 };
+
+// var DropletGen = function(params) {
+//     let pos = params["position"];
+//     let color = params["color"];
+//     let A = params["orificeSize"];
+//     let B = 4.8*A;
+//     let C = 6.71*A;
+//     let D = 2.09*A;
+//     let E = 4.85*A;
+//     //var vertices = [];
+//     let v1, v2, v3, v4, v5, v6, v7, v8, v9, v10;
+//     v1 = [pos[0] - D/2, pos[1] - A/2];
+//     v2 = [pos[0] - A/2, pos[1] - E/2];
+//     v3 = [pos[0] + A/2, pos[1] - E/2];
+//     v4 = [pos[0] + D/2, pos[1] - A/2];
+//     v5 = [pos[0] + D/2 + C, pos[1] - B/2];
+//     v6 = [pos[0] + D/2 + C, pos[1] + B/2];
+//     v7 = [pos[0] + D/2, pos[1] + A/2];
+//     v8 = [pos[0] + A/2, pos[1] + E/2];
+//     v9 = [pos[0] - A/2, pos[1] + E/2];
+//     v10 = [pos[0] - D/2, pos[1] + A/2];
+//
+//     var decahedron = new paper.Path();
+//     decahedron.add(new paper.Point(v1));
+//     decahedron.add(new paper.Point(v2));
+//     decahedron.add(new paper.Point(v3));
+//     decahedron.add(new paper.Point(v4));
+//     decahedron.add(new paper.Point(v5));
+//     decahedron.add(new paper.Point(v6));
+//     decahedron.add(new paper.Point(v7));
+//     decahedron.add(new paper.Point(v8));
+//     decahedron.add(new paper.Point(v9));
+//     decahedron.add(new paper.Point(v10));
+//     decahedron.closed = true;
+//     decahedron.fillColor = color;
+//     //decahedron.strokeColor = "#FFFFFF";
+//     //decahedron.strokeWidth = 3 / paper.view.zoom;
+//     return decahedron;
+// };
 
 var DropletGenTarget = function(params) {
     let pos = params["position"];
+    let x = pos[0];
+    let y = pos[1];
     let color = params["color"];
-    let A = params["orificeSize"];
-    let B = 4.8*A;
-    let C = 6.71*A;
-    let D = 2.09*A;
-    let E = 4.85*A;
-    //var vertices = [];
-    let v1, v2, v3, v4, v5, v6, v7, v8, v9, v10;
-    v1 = [pos[0] - D/2, pos[1] - A/2];
-    v2 = [pos[0] - A/2, pos[1] - E/2];
-    v3 = [pos[0] + A/2, pos[1] - E/2];
-    v4 = [pos[0] + D/2, pos[1] - A/2];
-    v5 = [pos[0] + D/2 + C, pos[1] - B/2];
-    v6 = [pos[0] + D/2 + C, pos[1] + B/2];
-    v7 = [pos[0] + D/2, pos[1] + A/2];
-    v8 = [pos[0] + A/2, pos[1] + E/2];
-    v9 = [pos[0] - A/2, pos[1] + E/2];
-    v10 = [pos[0] - D/2, pos[1] + A/2];
+    let orificeSize = params["orificeSize"];
+    let orificeLength = params["orificeLength"];
+    let oilInputWidth = params["oilInputWidth"];
+    let waterInputWidth = params["waterInputWidth"];
+    let outputWidth = params["outputWidth"];
+    let outputLength = params["outputLength"];
 
-    var decahedron = new paper.Path();
-    decahedron.add(new paper.Point(v1));
-    decahedron.add(new paper.Point(v2));
-    decahedron.add(new paper.Point(v3));
-    decahedron.add(new paper.Point(v4));
-    decahedron.add(new paper.Point(v5));
-    decahedron.add(new paper.Point(v6));
-    decahedron.add(new paper.Point(v7));
-    decahedron.add(new paper.Point(v8));
-    decahedron.add(new paper.Point(v9));
-    decahedron.add(new paper.Point(v10));
-    decahedron.closed = true;
-    decahedron.fillColor = color;
-    decahedron.fillColor.alpha = 0.5;
-    //decahedron.strokeColor = "#FFFFFF";
-    //decahedron.strokeWidth = 3 / paper.view.zoom;
-    return decahedron;
+    let ret = new paper.Path();
+
+    let p1 = new paper.Point(x, y);
+
+    let p2 = new paper.Point(p1.x + oilInputWidth, p1.y);
+
+    let p3 = new paper.Point(p2.x , p2.y + (waterInputWidth/2 - orificeSize/2));
+
+    let p4 = new paper.Point(p3.x + orificeLength, p3.y);
+
+    let p5 = new paper.Point(p4.x, p4.y - (outputWidth/2 - orificeSize/2));
+
+    let p6 = new paper.Point(p5.x + outputLength, p5.y);
+
+    let p7 = new paper.Point(p6.x, p6.y + (outputWidth));
+
+    let p8 = new paper.Point(p7.x - outputLength, p7.y);
+
+    let p9 = new paper.Point(p8.x, p8.y - (outputWidth/2 - orificeSize/2));
+
+    let p10 = new paper.Point(p9.x - orificeLength, p9.y);
+
+    let p11 = new paper.Point(p10.x, p10.y + (waterInputWidth/2 - orificeSize/2));
+
+    let p12 = new paper.Point(p11.x - oilInputWidth, p11.y);
+
+    ret.add(p1);
+    ret.add(p2);
+    ret.add(p3);
+    ret.add(p4);
+    ret.add(p5);
+    ret.add(p6);
+    ret.add(p7);
+    ret.add(p8);
+    ret.add(p9);
+    ret.add(p10);
+    ret.add(p11);
+    ret.add(p12);
+
+    ret.closed = true;
+    ret.fillColor = color;
+    ret.fillColor.alpha = 0.5;
+    return ret;
 };
 
 module.exports.RoundedRectLine = RoundedRectLine;
@@ -2491,9 +2828,13 @@ module.exports.CurvedMixer = CurvedMixer;
 module.exports.CurvedMixerTarget = CurvedMixerTarget;
 module.exports.Mixer = Mixer;
 module.exports.MixerTarget = MixerTarget;
+module.exports.GradientGenerator = GradientGenerator;
+module.exports.GradientGeneratorTarget = GradientGeneratorTarget;
 module.exports.EdgedRect = EdgedRect;
 module.exports.Tree = Tree;
 module.exports.TreeTarget = TreeTarget;
+module.exports.YTree = YTree;
+module.exports.YTreeTarget = YTreeTarget;
 module.exports.Mux = Mux;
 module.exports.Mux_control = Mux_control;
 module.exports.MuxTarget = MuxTarget;

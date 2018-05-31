@@ -3,9 +3,10 @@ var MouseTool = require("./MouseTool");
 var SimpleQueue = require("../../utils/simpleQueue");
 var PageSetup = require("../pageSetup");
 
-class SelectTool extends MouseTool {
+class MouseSelectTool extends MouseTool {
     constructor() {
         super();
+        console.log("Test");
         this.dragging = false;
         this.dragStart = null;
         this.lastPoint = null;
@@ -15,22 +16,19 @@ class SelectTool extends MouseTool {
         this.updateQueue = new SimpleQueue(function () {
             ref.dragHandler();
         }, 20);
-
         this.down = function (event) {
             PageSetup.killParamsWindow();
             ref.mouseDownHandler(event);
             ref.dragging = true;
             ref.showTarget();
         };
-
         this.move = function (event) {
             if (ref.dragging) {
                 ref.lastPoint = MouseTool.getEventPosition(event);
                 ref.updateQueue.run();
             }
             ref.showTarget();
-        };
-
+        }
         this.up = function (event) {
             ref.dragging = false;
             ref.mouseUpHandler(MouseTool.getEventPosition(event));
@@ -89,7 +87,7 @@ class SelectTool extends MouseTool {
             if (target.selected) {
                 let feat = Registry.currentDevice.getFeatureByID(target.featureID);
                 Registry.viewManager.updateDefaultsFromFeature(feat);
-                let func = PageSetup.paramsWindowFunction(feat.getType(), feat.getSet(), true);
+                let func = PageSetup.paramsWindowFunction(feat.getType(), feat.getSet());
                 func(event);
             } else {
                 this.deselectFeatures();
@@ -224,4 +222,4 @@ class SelectTool extends MouseTool {
     }
 }
 
-module.exports = SelectTool;
+module.exports = MouseSelectTool;

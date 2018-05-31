@@ -411,6 +411,35 @@ let render2D = {
         targetPrimitiveType: "MixerTarget",
         targetPrimitiveSet: "Basic2D"
     },
+    GradientGenerator: {
+        featureParams: {
+            position: "position",
+            channelWidth: "channelWidth",
+            bendSpacing: "bendSpacing",
+            numberOfBends: "numberOfBends",
+            orientation: "orientation",
+            bendLength: "bendLength",
+            in: "in",
+            out: "out",
+            spacing: "spacing",
+            rotation: "rotation"
+        },
+        targetParams: {
+            channelWidth: "channelWidth",
+            bendSpacing: "bendSpacing",
+            numberOfBends: "numberOfBends",
+            orientation: "orientation",
+            bendLength: "bendLength",
+            in: "in",
+            out: "out",
+            spacing: "spacing",
+            rotation: "rotation"
+        },
+        featurePrimitiveType: "GradientGenerator",
+        featurePrimitiveSet: "Basic2D",
+        targetPrimitiveType: "GradientGeneratorTarget",
+        targetPrimitiveSet: "Basic2D"
+    },
     Tree: {
         featureParams: {
             position: "position",
@@ -434,6 +463,31 @@ let render2D = {
         featurePrimitiveType: "Tree",
         featurePrimitiveSet: "Basic2D",
         targetPrimitiveType: "TreeTarget",
+        targetPrimitiveSet: "Basic2D"
+    },
+    YTree: {
+        featureParams: {
+            position: "position",
+            flowChannelWidth: "flowChannelWidth",
+            orientation: "orientation",
+            spacing: "spacing",
+            width: "width",
+            leafs: "leafs",
+            stageLength: "stageLength",
+            direction : "direction"
+        },
+        targetParams: {
+            flowChannelWidth: "flowChannelWidth",
+            orientation: "orientation",
+            spacing: "spacing",
+            width: "width",
+            leafs: "leafs",
+            stageLength: "stageLength",
+            direction:"direction"
+        },
+        featurePrimitiveType: "YTree",
+        featurePrimitiveSet: "Basic2D",
+        targetPrimitiveType: "YTreeTarget",
         targetPrimitiveSet: "Basic2D"
     },
     Mux: {
@@ -549,10 +603,22 @@ let render2D = {
     DropletGen: {
         featureParams: {
             position: "position",
-            orificeSize: "orificeSize"
+            orificeSize: "orificeSize",
+            orificeLength: "orificeLength",
+            oilInputWidth: "oilInputWidth",
+            waterInputWidth: "waterInputWidth",
+            outputWidth: "outputWidth",
+            outputLength: "outputLength",
+            height: "height"
         },
         targetParams: {
-            orificeSize: "orificeSize"
+            orificeSize: "orificeSize",
+            orificeLength: "orificeLength",
+            oilInputWidth: "oilInputWidth",
+            waterInputWidth: "waterInputWidth",
+            outputWidth: "outputWidth",
+            outputLength: "outputLength",
+            height: "height"
         },
         featurePrimitiveSet: "Basic2D",
         featurePrimitiveType: "DropletGen",

@@ -239,7 +239,36 @@ let render3D = {
         featurePrimitiveSet: "Basic3D",
         featurePrimitive: "ConeFeature"
     },
+    GradientGenerator: {
+        featureParams: {
+            position: "position",
+            radius1: "channelWidth",
+            radius2: "bendSpacing",
+            numberOfBends: "numberOfBends",
+            orientation: "orientation",
+            bendLength: "bendLength",
+            height: "height",
+            rotation: "rotation"
+        },
+        featurePrimitiveSet: "Basic3D",
+        featurePrimitive: "ConeFeature"
+    },
     Tree: {
+        featureParams: {
+            position: "position",
+            flowChannelWidth: "flowChannelWidth",
+            orientation: "orientation",
+            spacing: "spacing",
+            width: "width",
+            leafs: "leafs",
+            height: "height",
+            radius1: "width",
+            radius2: "length"
+        },
+        featurePrimitive: "ConeFeature",
+        featurePrimitiveSet: "Basic3D"
+    },
+    YTree: {
         featureParams: {
             position: "position",
             flowChannelWidth: "flowChannelWidth",

@@ -798,7 +798,122 @@ let basicFeatures = {
             "height": 1200,
         }
     },
+    "GradientGenerator": {
+        unique: {
+            "position": "Point",
+        },
+        heritable: {
+            "bendSpacing": "Float",
+            "numberOfBends": "Float",
+            "channelWidth": "Float",
+            "bendLength": "Float",
+            "in": "Float",
+            "out": "Float",
+            "spacing": "Float",
+            "height": "Float",
+            "rotation": "Float"
+        },
+        units: {
+            "bendSpacing": "&mu;m",
+            "numberOfBends": "",
+            "channelWidth": "&mu;m",
+            "bendLength": "&mu;m",
+            "orientation": "",
+            "in": "",
+            "out": "",
+            "spacing": "&mu;m",
+            "height": "&mu;m",
+            "rotation" : "&deg;"
+        },
+        defaults: {
+            "channelWidth": .80 * 1000,
+            "bendSpacing": 1.23 * 1000,
+            "numberOfBends": 1,
+            "orientation": "V",
+            "bendLength": 2.46 * 1000,
+            "in": 1,
+            "out": 3,
+            "spacing": 10000,
+            "height": .1 * 1000,
+            "rotation": 0
+        },
+        minimum: {
+            "channelWidth": 10,
+            "bendSpacing": 10,
+            "numberOfBends": 1,
+            "orientation": "H",
+            "bendLength": 10,
+            "in": 1,
+            "out": 3,
+            "spacing": 10,
+            "height": 10,
+            "rotation": 0
+        },
+        maximum: {
+            "channelWidth": 2000,
+            "bendSpacing": 6000,
+            "numberOfBends": 20,
+            "orientation": "H",
+            "bendLength": 12 * 1000,
+            "in": 30,
+            "out": 90,
+            "spacing": 90000,
+            "height": 1200,
+            "rotation":360
+        }
+    },
     "Tree": {
+        unique: {
+            "position": "Point"
+        },
+        heritable: {
+            "flowChannelWidth": "Float",
+            "orientation": "String",
+            "spacing": "Float",
+            "leafs": "Float",
+            "width": "Float",
+            "height": "Float",
+            "direction": "String",
+            "stageLength":"Float"
+        },
+        units: {
+            "flowChannelWidth": "&mu;m",
+            "orientation": "",
+            "spacing": "&mu;m",
+            "leafs": "",
+            "width": "&mu;m",
+            "height": "&mu;m",
+            "direction": "",
+            "stageLength":"&mu;m"
+        },
+        defaults: {
+            "flowChannelWidth": .80 * 1000,
+            "orientation": "V",
+            "spacing": 4 * 1000,
+            "leafs": 8,
+            "width": 2.46 * 1000,
+            "height": .1 * 1000,
+            "direction": "IN",
+            "stageLength": 4000
+        },
+        minimum: {
+            "flowChannelWidth": 10,
+            "spacing": 30,
+            "leafs": 2,
+            "width": 60,
+            "height": 10,
+            "stageLength": 100
+        },
+        maximum: {
+            "flowChannelWidth": 2000,
+            "spacing": 12000,
+            "leafs": 2,
+            "width": 12 * 1000,
+            "height": 1200,
+            "stageLength": 6000
+        }
+    },
+    "YTree": {
         unique: {
             "position": "Point"
         },
@@ -1052,22 +1167,48 @@ let basicFeatures = {
         },
         heritable: {
             "orificeSize": "Float",
+            "orificeLength": "Float",
+            "oilInputWidth": "Float",
+            "waterInputWidth": "Float",
+            "outputWidth": "Float",
+            "outputLength": "Float",
             "height": "Float"
         },
         units: {
             "orificeSize": "&mu;m",
+            "height": "&mu;m",
+            "orificeLength": "&mu;m",
+            "oilInputWidth": "&mu;m",
+            "waterInputWidth": "&mu;m",
+            "outputWidth": "&mu;m",
+            "outputLength": "&mu;m",
             "height": "&mu;m"
         },
         defaults: {
-            "orificeSize": .80 * 1000,
+            "orificeSize": .20 * 1000,
+            "orificeLength": .40 * 1000,
+            "oilInputWidth": .80 * 1000,
+            "waterInputWidth": .60 * 1000,
+            "outputWidth": .60 * 1000,
+            "outputLength": .60 * 1000,
             "height": .1 * 1000
         },
         minimum: {
             "orificeSize": 10,
+            "orificeLength": 10,
+            "oilInputWidth": 10,
+            "waterInputWidth": 10,
+            "outputWidth": 10,
+            "outputLength": 10,
             "height": 10,
         },
         maximum: {
             "orificeSize": 2000,
+            "orificeLength": 2000,
+            "oilInputWidth": 2000,
+            "waterInputWidth": 2000,
+            "outputWidth": 2000,
+            "outputLength": 2000,
             "height": 1200,
         }
     }
