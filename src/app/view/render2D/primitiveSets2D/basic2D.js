@@ -1808,7 +1808,7 @@ var GradientGenerator = function(params){
         //Insert Straight channel
         gradientgenerator.addChild(new paper.Path.Rectangle({
             point: new paper.Point(x, y),
-            size: [channelWidth, stagelength]
+            size: [channelWidth, stagelength+channelWidth]
         }));
     }
 
