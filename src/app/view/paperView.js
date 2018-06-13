@@ -3,11 +3,12 @@ var FeatureRenderer2D = require("./render2D/featureRenderer2D");
 var GridRenderer = require("./render2D/GridRenderer");
 var DeviceRenderer = require("./render2D/deviceRenderer2D");
 var AlignmentRenderer = require("./render2D/alignmentRenderer2D");
-var PanAndZoom = require("./PanAndZoom");
+import PanAndZoom from "./PanAndZoom";
 var SimpleQueue = require("../utils/simpleQueue");
 var Colors = require("./colors");
+var TextFeature = require("../core/textFeature");
 
-class PaperView {
+export default class PaperView {
     constructor(canvas) {
         this.panAndZoom = new PanAndZoom(this);
         this.center = paper.view.center;
@@ -23,9 +24,11 @@ class PaperView {
         this.gridLayer.insertAbove(this.deviceLayer);
         this.featureLayer = new paper.Group();
         this.featureLayer.insertAbove(this.gridLayer);
+        this.textFeatureLayer = new paper.Group();
+        this.textFeatureLayer.insertAbove(this.featureLayer);
         this.alignmentMarksLayer = new paper.Group();
-        this.alignmentMarksLayer.insertAbove(this.featureLayer);
-        this.uiLayer = new paper.Group();
+        this.alignmentMarksLayer.insertAbove(this.textFeatureLayer);
+        this.uiLayer = new paper.Group(); //This is the layer which we use to render targets
         this.uiLayer.insertAbove(this.featureLayer);
         this.currentTarget = null;
         this.lastTargetType = null;
@@ -159,7 +162,13 @@ class PaperView {
 
     setZoom(zoom) {
         this.zoom = zoom;
+        console.log(zoom);
         this.updateZoom();
+
+        //Check if the zoom toolbar exists before trying to run it
+        if(Registry.viewManager.zoomToolBar){
+            Registry.viewManager.zoomToolBar.setZoom(zoom);
+        }
     }
 
     updateZoom() {
@@ -281,8 +290,12 @@ class PaperView {
     }
 
     insertChildByHeight(group, newChild) {
-        this.getIndexByHeight(group.children, newChild);
-        let index = this.getIndexByHeight(group.children, newChild);
+        let index;
+        if (group.children.length > 0) {
+            index = this.getIndexByHeight(group.children, newChild);
+        } else {
+            index = 0;
+        }
         group.insertChild(index, newChild);
     }
 
@@ -303,7 +316,13 @@ class PaperView {
         if (existingFeature) selected = existingFeature.selected;
         else selected = false;
         this.removeFeature(feature);
-        let newPaperFeature = FeatureRenderer2D.renderFeature(feature);
+        let newPaperFeature;
+        if (feature instanceof TextFeature) {
+            //TODO:Create render textfeature method that doesnt take other params
+            newPaperFeature = FeatureRenderer2D.renderText(feature);
+        } else {
+            newPaperFeature = FeatureRenderer2D.renderFeature(feature);
+        }
         newPaperFeature.selected = selected;
         this.paperFeatures[newPaperFeature.featureID] = newPaperFeature;
         //TODO: This is terrible. Fix it. Fix it now.
@@ -312,11 +331,20 @@ class PaperView {
         this.insertChildByHeight(layer, newPaperFeature);
     }
 
+    /**
+     * Removes the target that is being rendered
+     */
     removeTarget() {
         if (this.currentTarget) this.currentTarget.remove();
         this.currentTarget = null;
     }
 
+    /**
+     * Add information about the target that has to be rendered
+     * @param featureType   String that identifies what kind of a feature this is
+     * @param set           Feature set the feature belongs to
+     * @param position      x,y position of the feature
+     */
     addTarget(featureType, set, position) {
         this.removeTarget();
         this.lastTargetType = featureType;
@@ -325,11 +353,24 @@ class PaperView {
         this.updateTarget();
     }
 
+    /**
+     * Updates the target that being rendered. This entails removing the current target and
+     * then creates a new target at the new position.
+     */
     updateTarget() {
         this.removeTarget();
         if (this.lastTargetType && this.lastTargetPosition) {
-            this.currentTarget = FeatureRenderer2D.renderTarget(this.lastTargetType, this.lastTargetSet, this.lastTargetPosition);
-            this.uiLayer.addChild(this.currentTarget);
+
+            //Checks if the target is a text type target
+            if (this.lastTargetType == "TEXT") {
+
+                this.currentTarget = FeatureRenderer2D.renderTextTarget(this.lastTargetType, this.lastTargetSet, this.lastTargetPosition);
+                this.uiLayer.addChild(this.currentTarget);
+
+            } else {
+                this.currentTarget = FeatureRenderer2D.renderTarget(this.lastTargetType, this.lastTargetSet, this.lastTargetPosition);
+                this.uiLayer.addChild(this.currentTarget);
+            }
         }
     }
 
@@ -411,8 +452,14 @@ class PaperView {
         else maxHeight = canvasHeight - borderMargin;
         let widthRatio = deviceWidth / maxWidth;
         let heightRatio = deviceHeight / maxHeight;
-        if (widthRatio > heightRatio) return 1 / widthRatio;
-        else return 1 / heightRatio;
+        console.log("optimal zoom", 1 / heightRatio);
+        if (widthRatio > heightRatio) {
+            return 1 / widthRatio;
+        }
+        else {
+            return 1 / heightRatio;
+        }
+
     }
 
     hitFeature(point, onlyHitActiveLayer = true) {
@@ -467,5 +514,3 @@ class PaperView {
         return output;
     }
 }
-
-module.exports = PaperView;

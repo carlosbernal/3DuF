@@ -1183,7 +1183,6 @@ let basicFeatures = {
             "waterInputWidth": "&mu;m",
             "outputWidth": "&mu;m",
             "outputLength": "&mu;m",
-            "height": "&mu;m",
             "rotation": "&deg;"
         },
         defaults: {
@@ -1216,7 +1215,16 @@ let basicFeatures = {
             "height": 1200,
             "rotation": 360
         }
+    },
+    "TEXT":{
+        unique: {
+            "position": "Point"
+        },
+        heritable: {
+            "height": "Float",
+            "text":"String"
+        }
     }
-}
+};
 
 module.exports = basicFeatures;

@@ -19,6 +19,7 @@
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="modified.css">
+    <link rel="stylesheet" href="animations.css">
 </head>
 
 <body>
@@ -34,7 +35,6 @@
             mdl-layout--overlay-drawer-button ">
     <div id="button_drawer" class="mdl-layout__drawer">
         <img class="logo" src="img/logo.png">
-
         <nav class="mdl-navigation" id="general-tools">
 
             <div class="button_row">
@@ -45,6 +45,11 @@
             <div class="button_row">
                 <a id="select_button" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--raised feature-button">
                     Select Tool</a>
+            </div>
+
+            <div class="button_row">
+                <a id="insert_text_button" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--raised feature-button">
+                    Insert Text</a>
             </div>
 
         </nav>
@@ -245,6 +250,37 @@
     </main>
 </div>
 
+
+
+<!-- Colored FAB button with ripple -->
+<div id="toolbar-button-panel">
+    <button id="grid-toolbar-show-button" class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored">
+        <i class="material-icons">grid_on</i>
+    </button>
+    <div class="mdl-tooltip mdl-tooltip--left" for="grid-toolbar-show-button">
+        Grid Settings
+    </div>
+</div>
+
+<div id="zoom-toolbar">
+    <div id="zoom-slider" height="200px" style="z-index: 9"></div>
+</div>
+
+<div id="resolution-toolbar" class="hidetoolbar">
+    <div>
+        <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="grid-enable-toggle">
+            <input type="checkbox" id="grid-enable-toggle" class="mdl-switch__input" checked>
+            <span class="mdl-switch__label">Enable Automatic Grid</span>
+        </label>
+        <div id="grid-resolution-slider"></div>
+        <br/>
+    </div>
+</div>
+
+<div id="bottom-info-bar" style="z-index: 9; bottom: 2px; right: 50px; position: absolute;">
+    Grid Size : <label id="sm-resolution"></label>
+</div>
+
 <dialog id="help_dialog" class="mdl-dialog">
     <div class="mdl-dialog__content">
         <div class="demo-card-wide mdl-card mdl-shadow--2dp">
@@ -331,8 +367,26 @@
         <button type="button" class="mdl-button close">Cancel</button>
     </div>
 </dialog>
+<dialog id="insert_text_dialog" class="mdl-dialog">
+    <div class="mdl-dialog__content">
+        <!-- Textfield with Floating Label -->
+        <h4>
+            Insert Text:
+        </h4>
+        <form action="#">
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                <input class="mdl-textfield__input" type="text" id="inserttext_textinput">
+                <label class="mdl-textfield__label" for="inserttext_textinput">Text</label>
+            </div>
+        </form>
+    </div>
+    <div class="mdl-dialog__actions mdl-dialog__actions--full-width">
+        <button id="accept_text_button" type="button" class="mdl-button">Insert</button>
+        <button type="button" class="mdl-button close">Cancel</button>
+    </div>
+</dialog>
 <script>
-    var dialog = document.querySelector('#edit_device_dialog');
+    var dialog = document.getElementById('edit_device_dialog');
     var showModalButton = document.querySelector('#resize_button');
     if (! dialog.showModal) {
         dialogPolyfill.registerDialog(dialog);
@@ -357,6 +411,19 @@
 
     helpdialog.querySelector('.close').addEventListener('click', function() {
         helpdialog.close();
+    });
+
+    var textLabelDialog = document.getElementById('insert_text_dialog');
+    var showTextLabelButton = document.querySelector('#insert_text_button');
+
+    if (! textLabelDialog.showModal) {
+        dialogPolyfill.registerDialog(textLabelDialog);
+    }
+    showTextLabelButton.addEventListener('click', function() {
+        textLabelDialog.showModal();
+    });
+    textLabelDialog.querySelector('.close').addEventListener('click', function() {
+        textLabelDialog.close();
     });
 
 </script>

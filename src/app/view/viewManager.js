@@ -1,3 +1,5 @@
+import ZoomToolBar from "./ui/zoomToolBar";
+
 var Registry = require("../core/registry");
 var Device = require("../core/device");
 var ChannelTool = require("./tools/channelTool");
@@ -5,6 +7,7 @@ var MouseTool = require("./tools/mouseTool");
 var PanTool = require("./tools/panTool");
 var PanAndZoom = require("./PanAndZoom");
 var SelectTool = require("./tools/selectTool");
+var InsertTextTool = require("./tools/insertTextTool");
 var SimpleQueue = require("../utils/SimpleQueue");
 var PositionTool = require("./tools/positionTool");
 var ComponentPositionTool = require("./tools/ComponentPositionTool");
@@ -12,12 +15,18 @@ var MultilayerPositionTool = require('./tools/multilayerPositionTool');
 var CellPositionTool = require('./tools/cellPositionTool');
 var MouseSelectTool = require('./tools/mouseSelectTool');
 
-class ViewManager {
+import ResolutionToolBar from './ui/resolutionToolBar';
+import RightPanel from './ui/rightPanel';
+
+export default class ViewManager {
     constructor(view) {
         this.view = view;
         this.tools = {};
         this.middleMouseTool = new PanTool();
         this.rightMouseTool = new SelectTool();
+        this.rightPanel = new RightPanel();
+        this.resolutionToolBar = new ResolutionToolBar();
+
         let reference = this;
         this.updateQueue = new SimpleQueue(function() {
             reference.view.refresh();
@@ -139,6 +148,11 @@ class ViewManager {
         this.activateTool("Channel");
     }
 
+    setupToolBars(){
+        //Initiating the zoom toolbar
+        this.zoomToolBar = new ZoomToolBar(.0001, 5);
+    }
+
     addDevice(device, refresh = true) {
         this.view.addDevice(device);
         this.__addAllDeviceLayers(device, false);
@@ -195,13 +209,6 @@ class ViewManager {
         if (this.__isLayerInCurrentDevice(layer)) {
             this.view.addLayer(layer, index, false);
             this.__addAllLayerFeatures(layer, false);
-            this.refresh(refresh);
-        }
-    }
-
-    updateLayer(layer, index, refresh = true) {
-        if (this.__isLayerInCurrentDevice(layer)) {
-            this.view.updateLayer(layer);
             this.refresh(refresh);
         }
     }
@@ -285,6 +292,7 @@ class ViewManager {
 
         this.updateDevice(Registry.currentDevice, false);
         this.__updateViewTarget(false);
+        this.zoomToolBar.setZoom(zoom);
         this.refresh(refresh);
     }
 
@@ -350,6 +358,9 @@ class ViewManager {
 
     refresh(refresh = true) {
         this.updateQueue.run();
+        //Update the toolbar
+        let spacing = Registry.currentGrid.getSpacing();
+        this.resolutionToolBar.updateResolutionLabelAndSlider(spacing);
     }
 
     getEventPosition(event) {
@@ -389,7 +400,7 @@ class ViewManager {
         // its going the be the legacy format, else it'll be a new format
         var version = json.version;
         if(null == version || undefined == version){
-            console.log("Loading Legacy Format...")
+            console.log("Loading Legacy Format...");
             Registry.currentDevice = Device.fromJSON(json);
         }else{
             console.log("Version Number: " + version);
@@ -403,6 +414,7 @@ class ViewManager {
         }
         //Common Code for rendering stuff
         Registry.currentLayer = Registry.currentDevice.layers[0];
+        Registry.currentTextLayer = Registry.currentDevice.textLa;
         Registry.viewManager.addDevice(Registry.currentDevice);
         this.view.initializeView();
         this.updateGrid();
@@ -526,6 +538,7 @@ class ViewManager {
 
     setupTools() {
         this.tools["MouseSelectTool"] = new MouseSelectTool();
+        this.tools["InsertTextTool"] = new InsertTextTool();
         this.tools["Chamber"] = new ChannelTool("Chamber", "Basic");
         this.tools["Valve"] = new ComponentPositionTool("Valve", "Basic");
         this.tools["Channel"] = new ChannelTool("Channel", "Basic");
@@ -552,5 +565,3 @@ class ViewManager {
         this.tools["AlignmentMarks"] = new MultilayerPositionTool("AlignmentMarks", "Basic");
     }
 }
-
-module.exports = ViewManager;

@@ -1,7 +1,7 @@
 var Params = require("./params");
 var Parameters = require("./parameters");
 var Parameter =require("./parameter");
-var Feature = require('./feature')
+var Feature = require('./feature');
 var Layer = require('./layer');
 var Registry = require("./registry");
 
@@ -12,6 +12,7 @@ var FloatValue = Parameters.FloatValue;
 class Device {
     constructor(values, name = "New Device") {
         this.layers = [];
+        this.textLayers = [];
         this.params = new Params(values, Device.getUniqueParameters(), Device.getHeritableParameters());
         this.name = StringValue(name);
         this.__components = [];
@@ -56,6 +57,12 @@ class Device {
                 return layer;
             } 
         } 
+        for (let i = 0; i < this.textLayers.length; i ++){
+            let layer = this.textLayers[i];
+            if (layer.containsFeatureID(featureID)){
+                return layer;
+            }
+        }
         throw new Error("FeatureID " + featureID + " not found in any layer.");
     }
 
@@ -66,7 +73,7 @@ class Device {
         return false;
     }
     getAllFeaturesFromDevice() {
-        features = [];
+        let features = [];
         for (let layer in this.layers) {
             features.push.apply(features, layer.features);
         }

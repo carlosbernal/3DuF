@@ -1,6 +1,7 @@
 var Params = require('./params');
 var Parameters = require('./parameters');
 var Feature = require('./feature');
+var TextFeature = require('./textFeature');
 var Registry = require("./registry");
 
 var FloatValue = Parameters.FloatValue;
@@ -62,7 +63,7 @@ class Layer {
     }
 */
     __ensureIsAFeature(feature) {
-        if (!(feature instanceof Feature)) {
+        if (!(feature instanceof Feature) && !(feature instanceof TextFeature)) {
             throw new Error("Provided value" + feature + " is not a Feature! Did you pass an ID by mistake?");
         }
     }
@@ -87,7 +88,7 @@ class Layer {
     }
 
     getFeature(featureID) {
-        this.__ensureFeatureIDExists(featureID)
+        this.__ensureFeatureIDExists(featureID);
         return this.features[featureID];
     }
 
