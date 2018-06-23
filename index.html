@@ -43,6 +43,11 @@
             </div>
 
             <div class="button_row">
+                <a id="edit_border_button" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--raised feature-button">
+                    Edit Border</a>
+            </div>
+
+            <div class="button_row">
                 <a id="select_button" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--raised feature-button">
                     Select Tool</a>
             </div>
@@ -56,6 +61,13 @@
 
         <span class="mdl-layout-title">Select Feature</span>
         <nav class="mdl-navigation" id="feature-misc">
+
+            <div class="button_row">
+                <a id="connection_button" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--raised feature-button">Connection</a>
+                <button id="connection_params_button" class="params-button mdl-button mdl-js-button mdl-button--icon">
+                    <i class="material-icons">settings</i>
+                </button>
+            </div>
 
             <div class="button_row">
                 <a id="channel_button" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--raised feature-button">Channel</a>
@@ -383,6 +395,20 @@
     <div class="mdl-dialog__actions mdl-dialog__actions--full-width">
         <button id="accept_text_button" type="button" class="mdl-button">Insert</button>
         <button type="button" class="mdl-button close">Cancel</button>
+    </div>
+</dialog>
+<dialog id="border_settings_dialog" class="mdl-dialog">
+    <div class="mdl-dialog__content">
+        <!-- Textfield with Floating Label -->
+        <h4>
+            Drag Drop the DXF file containing border to import:
+        </h4>
+        <input type="file" class="upload" id="dxf_input" />
+    </div>
+    <div class="mdl-dialog__actions mdl-dialog__actions--full-width">
+        <button id="import_border_button" type="button" class="mdl-button">Import Border</button>
+        <button id="delete_border_button" type="button" class="mdl-button">Delete Border</button>
+        <button type="button" class="mdl-button close">Close</button>
     </div>
 </dialog>
 <script>

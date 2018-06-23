@@ -1,7 +1,7 @@
 var Params = require("./params");
 var Parameters = require("./parameters");
 var Parameter =require("./parameter");
-var Feature = require('./feature');
+import Feature from './feature';
 var Layer = require('./layer');
 var Registry = require("./registry");
 
@@ -72,10 +72,17 @@ class Device {
         }
         return false;
     }
+
     getAllFeaturesFromDevice() {
         let features = [];
-        for (let layer in this.layers) {
-            features.push.apply(features, layer.features);
+        for (let i in this.layers) {
+            //features.push.apply(features, layer.features);
+            let layer = this.layers[i];
+            console.log(layer);
+            for(let j in layer.features){
+                console.log(layer.features[j]);
+                features.push(layer.features[j]);
+            }
         }
         return features;
     }
@@ -228,6 +235,15 @@ class Device {
     setYSpan(value){
         this.params.updateParameter("height", value);
     }
+
+    getXSpan(){
+        return this.params.getValue("width");
+    }
+
+    getYSpan(){
+        return this.params.getValue("height");
+    }
+
 }
 
 module.exports = Device;

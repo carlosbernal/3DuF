@@ -25,6 +25,7 @@
     ]
   },
   "dependencies": {
+    "dxf-parser": "^0.6.1",
     "jszip": "^2.5.0",
     "node-uuid": ">=1.4.3",
     "nouislider": "^11.1.0",
@@ -38,7 +39,7 @@
     "compile": "node_modules/.bin/browserify ./src/app/appSetup.js -t babelify --outfile ./3DuFapp.js",
     "test": "node_modules/.bin/mocha --recursive --compilers js:babel/register -R spec ./src/test/",
     "prepublish": "npm run compile",
-    "watch_compile": "node_modules/.bin/watchify ./src/app/appSetup.js -t babelify -v --outfile ./3DuFapp.js",
+    "watch_compile": "node_modules/.bin/watchify ./src/app/appSetup.js -t babelify -v --outfile ./3DuFapp.js -d -t [ babelify ]",
     "watch_test": "node_modules/.bin/mocha --watch --recursive --compilers js:babel/register -R min ./src/test/",
     "cover": "node_modules/.bin/istanbul cover node_modules/mocha/bin/_mocha -- -R spec --recursive --compilers js:babel/register ./src/test/"
   },

@@ -1,8 +1,10 @@
 import ZoomToolBar from "./ui/zoomToolBar";
+import BorderSettingsDialog from './ui/borderSettingDialog';
 
 var Registry = require("../core/registry");
 var Device = require("../core/device");
 var ChannelTool = require("./tools/channelTool");
+var ConnectionTool = require("./tools/connectionTool");
 var MouseTool = require("./tools/mouseTool");
 var PanTool = require("./tools/panTool");
 var PanAndZoom = require("./PanAndZoom");
@@ -17,6 +19,9 @@ var MouseSelectTool = require('./tools/mouseSelectTool');
 
 import ResolutionToolBar from './ui/resolutionToolBar';
 import RightPanel from './ui/rightPanel';
+import Feature from '../core/feature';
+import DXFObject from '../core/dxfObject';
+import EdgeFeature from "../core/edgeFeature";
 
 export default class ViewManager {
     constructor(view) {
@@ -26,7 +31,7 @@ export default class ViewManager {
         this.rightMouseTool = new SelectTool();
         this.rightPanel = new RightPanel();
         this.resolutionToolBar = new ResolutionToolBar();
-
+        this.borderDialog = new BorderSettingsDialog();
         let reference = this;
         this.updateQueue = new SimpleQueue(function() {
             reference.view.refresh();
@@ -225,6 +230,12 @@ export default class ViewManager {
         return this.view.layersToSVGStrings();
     }
 
+    /**
+     * Adds a feature to all the layers ??????
+     * @param layer
+     * @param refresh
+     * @private
+     */
     __addAllLayerFeatures(layer, refresh = true) {
         for (let key in layer.features) {
             let feature = layer.features[key];
@@ -296,6 +307,85 @@ export default class ViewManager {
         this.refresh(refresh);
     }
 
+    /**
+     * Automatically generates a rectangular border for the device
+     */
+    generateBorder(){
+        let borderfeature = new EdgeFeature(null, null);
+
+        //Get the bounds for the border feature and then update the device dimensions
+        let xspan = Registry.currentDevice.getXSpan();
+        let yspan = Registry.currentDevice.getYSpan();
+        console.log("Span", xspan, yspan);
+        borderfeature.generateRectEdge(xspan, yspan);
+
+        //Adding the feature to all the layers
+        for(let i in Registry.currentDevice.layers){
+            let layer = Registry.currentDevice.layers[i];
+            layer.addFeature(borderfeature);
+        }
+    }
+
+    /**
+     * Accepts a DXF object and then converts it into a feature, an edgeFeature in particular
+     * @param dxfobject
+     */
+    importBorder(dxfobject){
+        let customborderfeature = new EdgeFeature(null, null);
+        for(let i in dxfobject.entities){
+            let foo = new DXFObject(dxfobject.entities[i]);
+           customborderfeature.addDXFObject(foo);
+        }
+
+        //Adding the feature to all the layers
+        for(let i in Registry.currentDevice.layers){
+            let layer = Registry.currentDevice.layers[i];
+            layer.addFeature(customborderfeature);
+        }
+
+        //Get the bounds for the border feature and then update the device dimensions
+        let bounds = this.view.getRenderedFeature(customborderfeature.getID()).bounds;
+
+        Registry.currentDevice.setXSpan(bounds.width);
+        Registry.currentDevice.setYSpan(bounds.height);
+        //Refresh the view
+        Registry.viewManager.view.initializeView();
+        Registry.viewManager.view.refresh();
+
+    }
+
+    /**
+     * Deletes the border
+     */
+    deleteBorder(){
+        /*
+        1. Find all the features that are EDGE type
+        2. Delete all these features
+         */
+
+        console.log("Deleting border...");
+
+        let features = Registry.currentDevice.getAllFeaturesFromDevice();
+        console.log("All features", features);
+
+        let edgefeatures = [];
+
+        for(let i in features){
+            //Check if the feature is EDGE or not
+            if('EDGE' == features[i].fabType){
+                edgefeatures.push(features[i]);
+            }
+        }
+
+        //Delete all the features
+        for(let i in edgefeatures){
+            Registry.currentDevice.removeFeatureByID(edgefeatures[i].getID());
+        }
+
+        console.log("Edgefeatures", edgefeatures);
+
+    }
+    
     removeTarget() {
         this.view.removeTarget();
     }
@@ -383,7 +473,13 @@ export default class ViewManager {
     }
 
     constructMouseDownEvent(tool1, tool2, tool3) {
-        return this.constructMouseEvent(tool1.down, tool2.down, tool3.down);
+        if(tool1 == tool3){
+            console.log("Both right and left tool is the same");
+            return this.constructMouseEvent(tool1.down, tool2.down, tool3.rightdown);
+
+        }else {
+            return this.constructMouseEvent(tool1.down, tool2.down, tool3.down);
+        }
     }
 
     constructMouseMoveEvent(tool1, tool2, tool3) {
@@ -531,17 +627,20 @@ export default class ViewManager {
         this.view.setMouseMoveFunction(this.constructMouseMoveEvent(this.leftMouseTool, this.middleMouseTool, this.rightMouseTool));
     }
 
-    activateTool(toolString) {
+    activateTool(toolString , rightClickToolString = "SelectTool") {
         this.leftMouseTool = this.tools[toolString];
+        this.rightMouseTool = this.tools[rightClickToolString];
         this.__updateViewMouseEvents();
     }
 
     setupTools() {
+        this.tools["SelectTool"] = new SelectTool();
         this.tools["MouseSelectTool"] = new MouseSelectTool();
         this.tools["InsertTextTool"] = new InsertTextTool();
         this.tools["Chamber"] = new ChannelTool("Chamber", "Basic");
         this.tools["Valve"] = new ComponentPositionTool("Valve", "Basic");
         this.tools["Channel"] = new ChannelTool("Channel", "Basic");
+        this.tools["Connection"] = new ConnectionTool("Connection", "Basic");
         this.tools["RoundedChannel"] = new ChannelTool("RoundedChannel", "Basic");
         this.tools["Node"] = new ComponentPositionTool("Node", "Basic");
         this.tools["CircleValve"] = new ComponentPositionTool("CircleValve", "Basic");

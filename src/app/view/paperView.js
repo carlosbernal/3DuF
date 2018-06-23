@@ -1,3 +1,5 @@
+import EdgeFeature from "../core/edgeFeature";
+
 var Registry = require("../core/registry");
 var FeatureRenderer2D = require("./render2D/featureRenderer2D");
 var GridRenderer = require("./render2D/GridRenderer");
@@ -6,7 +8,8 @@ var AlignmentRenderer = require("./render2D/alignmentRenderer2D");
 import PanAndZoom from "./PanAndZoom";
 var SimpleQueue = require("../utils/simpleQueue");
 var Colors = require("./colors");
-var TextFeature = require("../core/textFeature");
+import TextFeature from "../core/textFeature";
+const DXFObjectRenderer2D = require('./render2D/dxfObjectRenderer2D');
 
 export default class PaperView {
     constructor(canvas) {
@@ -162,7 +165,6 @@ export default class PaperView {
 
     setZoom(zoom) {
         this.zoom = zoom;
-        console.log(zoom);
         this.updateZoom();
 
         //Check if the zoom toolbar exists before trying to run it
@@ -282,10 +284,23 @@ export default class PaperView {
     }
 
     comparePaperFeatureHeights(a, b) {
+        let bHeight;
+        let aHeight;
         let aFeature = Registry.currentDevice.getFeatureByID(a.featureID);
         let bFeature = Registry.currentDevice.getFeatureByID(b.featureID);
-        let aHeight = aFeature.getValue("height");
-        let bHeight = bFeature.getValue("height");
+
+        //TODO: So this needs to be eliminated form the entire sequence
+        try {
+            aHeight = aFeature.getValue("height");
+        } catch (e) {
+            aHeight = 9999;
+        }
+
+        try {
+            bHeight = bFeature.getValue("height");
+        } catch (e) {
+            bHeight = 9999;
+        }
         return aHeight - bHeight;
     }
 
@@ -320,13 +335,20 @@ export default class PaperView {
         if (feature instanceof TextFeature) {
             //TODO:Create render textfeature method that doesnt take other params
             newPaperFeature = FeatureRenderer2D.renderText(feature);
-        } else {
+        } else if( feature instanceof EdgeFeature){
+            console.log('added the edge feature to the paperview');
+            newPaperFeature = DXFObjectRenderer2D.renderEdgeFeature(feature);
+            newPaperFeature.selected = selected;
+            this.paperFeatures[newPaperFeature.featureID] = newPaperFeature;
+            this.insertEdgeFeatures(newPaperFeature);
+            return;
+        }
+        else {
             newPaperFeature = FeatureRenderer2D.renderFeature(feature);
         }
         newPaperFeature.selected = selected;
         this.paperFeatures[newPaperFeature.featureID] = newPaperFeature;
-        //TODO: This is terrible. Fix it. Fix it now.
-        let index = feature.layer.device.layers.indexOf(feature.layer);
+        let index = Registry.currentDevice.layers.indexOf(feature.layer);
         let layer = this.paperLayers[index];
         this.insertChildByHeight(layer, newPaperFeature);
     }
@@ -452,7 +474,6 @@ export default class PaperView {
         else maxHeight = canvasHeight - borderMargin;
         let widthRatio = deviceWidth / maxWidth;
         let heightRatio = deviceHeight / maxHeight;
-        console.log("optimal zoom", 1 / heightRatio);
         if (widthRatio > heightRatio) {
             return 1 / widthRatio;
         }
@@ -467,7 +488,7 @@ export default class PaperView {
             fill: true,
             tolerance: 5,
             guides: false
-        }
+        };
 
         let target;
 
@@ -512,5 +533,19 @@ export default class PaperView {
             }
         }
         return output;
+    }
+
+    insertEdgeFeatures(newPaperFeature) {
+        let layer = this.paperLayers[0];
+        layer.insertChild(0, newPaperFeature);
+    }
+
+    /**
+     * Returns the rendered feature object that is being displayed for the particular feature
+     * @param featureID
+     * @return {*}
+     */
+    getRenderedFeature(featureID){
+        return this.paperFeatures[featureID];
     }
 }
