@@ -59,11 +59,7 @@ export default class ViewManager {
             // Copy
             if ((event.ctrlKey || event.metaKey) && key == 67) {
                 //console.log("Ctl c detected");
-                let selectedFeatures = reference.view.getSelectedFeatures();
-                if (selectedFeatures.length > 0) {
-                    reference.pasteboard[0] = selectedFeatures[0];
-                }
-
+                reference.initiateCopy();
             }
             // Cut
             if ((event.ctrlKey || event.metaKey) && key == 88) {
@@ -151,6 +147,13 @@ export default class ViewManager {
         this.maxZoom = 5;
         this.setupTools();
         this.activateTool("Channel");
+    }
+
+    initiateCopy() {
+        let selectedFeatures = this.view.getSelectedFeatures();
+        if (selectedFeatures.length > 0) {
+            this.pasteboard[0] = selectedFeatures[0];
+        }
     }
 
     setupToolBars(){
@@ -586,7 +589,7 @@ export default class ViewManager {
                 this.adjustAllFeatureParams(valueString, value, correctType);
             }
         }
-        this.updateDefault(typeString, setString, valueString, value);
+        //this.updateDefault(typeString, setString, valueString, value);
     }
 
     updateDefault(typeString, setString, valueString, value){
@@ -637,7 +640,7 @@ export default class ViewManager {
         this.tools["SelectTool"] = new SelectTool();
         this.tools["MouseSelectTool"] = new MouseSelectTool();
         this.tools["InsertTextTool"] = new InsertTextTool();
-        this.tools["Chamber"] = new ChannelTool("Chamber", "Basic");
+        this.tools["Chamber"] = new ComponentPositionTool("Chamber", "Basic");
         this.tools["Valve"] = new ComponentPositionTool("Valve", "Basic");
         this.tools["Channel"] = new ChannelTool("Channel", "Basic");
         this.tools["Connection"] = new ConnectionTool("Connection", "Basic");
