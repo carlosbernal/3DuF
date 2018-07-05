@@ -59,6 +59,36 @@
 
         </nav>
 
+        <span class="mdl-layout-title">Select Layer</span>
+
+
+
+        <nav class="mdl-navigation" id="layer-controls">
+            <!--<a id="control_button" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button&#45;&#45;raised view-button">Control</a>-->
+
+            <div id="layer-toolbar">
+                <div id="template-layer-block" class="mdl-button-group layer-block" data-levelindex="0">
+                    <span class="level-index">LEVEL 1</span>
+                    <button class="mdl-button mdl-js-button mdl-button--icon mdl-button--colored delete-level" style="visibility: hidden" data-levelindex="0">
+                        <i class="material-icons">delete</i>
+                    </button>
+                    <!--<button class="mdl-button mdl-js-button mdl-button&#45;&#45;icon mdl-button&#45;&#45;colored">-->
+                    <!--<i class="material-icons">visibility_off</i>-->
+                    <!--</button>-->
+                    <br/>
+                    <a class=" mdl-button mdl-button--raised mdl-js-button mdl-js-ripple-effect layer-button flow-button" data-layerindex="0">Flow</a>
+                    <a class="mdl-button mdl-button--raised  mdl-js-button mdl-js-ripple-effect layer-button control-button" data-layerindex="1">Control</a>
+                </div>
+
+            </div>
+
+
+            <button id="add-new-level" class="mdl-button mdl-js-button mdl-button--icon mdl-button--colored">
+                <i class="material-icons">add_box</i>
+            </button>
+            <!--<a id="cells_button" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button&#45;&#45;raised view-button">Cells</a>-->
+        </nav>
+
         <span class="mdl-layout-title">Select Feature</span>
         <nav class="mdl-navigation" id="feature-misc">
 
@@ -228,12 +258,6 @@
         <span class="mdl-layout-title">QoL Operations</span>
         <nav class="mdl-navigation" id="qol-controls">
             <a id="revertdefaults_button" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--raised view-button">Flow</a>
-        </nav>
-        <span class="mdl-layout-title">Select Layer</span>
-        <nav class="mdl-navigation" id="layer-controls">
-            <a id="flow_button" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--raised view-button">Flow</a>
-            <a id="control_button" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--raised view-button">Control</a>
-            <a id="cells_button" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--raised view-button">Cells</a>
         </nav>
         <span class="mdl-layout-title">Select View</span>
         <nav class="mdl-navigation">
@@ -449,6 +473,27 @@
         <button type="button" class="mdl-button close">Close</button>
     </div>
 </dialog>
+<dialog id="change_all_dialog" class="mdl-dialog">
+    <div class="mdl-dialog__content">
+        <!-- Textfield with Floating Label -->
+        <h5>
+            Change All Components: <span id="component_type_span"></span>
+        </h5>
+    </div>
+    <table id="similar_components_table">
+        <thead>
+        <tr>
+            <th>Select</th>
+            <th scope="col">Name</th>
+            <th scope="col">Change</th>
+        </tr>
+        </thead>
+    </table>
+    <div class="mdl-dialog__actions mdl-dialog__actions--full-width">
+        <button id="change_all_button" type="button" class="mdl-button">Change</button>
+        <button type="button" class="mdl-button close">Cancel</button>
+    </div>
+</dialog>
 <script>
     var dialog = document.getElementById('edit_device_dialog');
     var showModalButton = document.querySelector('#resize_button');
@@ -491,6 +536,10 @@
     });
 
 </script>
+
+<!--Templates-->
+
+
 </body>
 
 <script src="3DuFApp.js"></script>
