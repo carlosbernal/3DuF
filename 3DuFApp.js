@@ -35273,15 +35273,13 @@ window.onload = function () {
     Registry.viewManager.generateBorder();
 };
 
-},{"./core/device":222,"./core/layer":226,"./core/registry":236,"./examples/jsonExamples":238,"./view/colors":252,"./view/grid/adaptiveGrid":253,"./view/pageSetup":254,"./view/paperView":255,"./view/render3D/ThreeDeviceRenderer":263,"./view/ui/zoomToolBar":289,"./view/viewManager":290,"dxf-parser":67}],221:[function(require,module,exports){
+},{"./core/device":222,"./core/layer":226,"./core/registry":236,"./examples/jsonExamples":238,"./view/colors":252,"./view/grid/adaptiveGrid":253,"./view/pageSetup":254,"./view/paperView":255,"./view/render3D/ThreeDeviceRenderer":263,"./view/ui/zoomToolBar":291,"./view/viewManager":292,"dxf-parser":67}],221:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var Parameters = require('./parameters');
-var StringValue = Parameters.StringValue;
 var Registry = require("./registry");
 var FeatureRenderer2D = require("../view/render2D/featureRenderer2D");
 
@@ -35297,10 +35295,10 @@ var Component = function () {
         _classCallCheck(this, Component);
 
         this.__params = params;
-        this.__name = StringValue(name);
+        this.__name = name;
         this.__id = id;
         this.__type = type;
-        this.__entity = StringValue(mint);
+        this.__entity = mint;
         //This stores the features that are a part of the component
         this.__features = [];
         //TODO: Need to figure out how to effectively search through these
@@ -35377,7 +35375,7 @@ var Component = function () {
     }, {
         key: "setName",
         value: function setName(name) {
-            this.__name = StringValue(name);
+            this.__name = name;
         }
 
         /**
@@ -35388,7 +35386,7 @@ var Component = function () {
     }, {
         key: "getName",
         value: function getName() {
-            return this.__name.getValue();
+            return this.__name;
         }
 
         /**
@@ -35484,18 +35482,29 @@ var Component = function () {
     }, {
         key: "getParams",
         value: function getParams() {
-            return this.__params.parameters;
+            return this.__params;
         }
 
         /**
          * Sets the params associated with the component
-         * @param params
+         * @param params key -> Parameter Set
          */
 
     }, {
         key: "setParams",
         value: function setParams(params) {
-            this.__params.parameters = params;
+            this.__params = params;
+            //TODO: Modify all the associated Features
+            for (var key in params) {
+                var value = params[key];
+                for (var i in this.__features) {
+                    var featureidtochange = this.__features[i];
+
+                    //Get the feature id and modify it
+                    var feature = Registry.currentDevice.getFeatureByID(featureidtochange);
+                    feature.updateParameter(key, value.getValue());
+                }
+            }
         }
 
         /**
@@ -35525,14 +35534,22 @@ var Component = function () {
 
 module.exports = Component;
 
-},{"../view/render2D/featureRenderer2D":260,"./parameters":230,"./registry":236}],222:[function(require,module,exports){
+},{"../view/render2D/featureRenderer2D":260,"./registry":236}],222:[function(require,module,exports){
 "use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _feature = require("./feature");
 
 var _feature2 = _interopRequireDefault(_feature);
+
+var _layer2 = require("./layer");
+
+var _layer3 = _interopRequireDefault(_layer2);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -35542,7 +35559,6 @@ var Params = require("./params");
 var Parameters = require("./parameters");
 var Parameter = require("./parameter");
 
-var Layer = require('./layer');
 var Registry = require("./registry");
 
 var StringValue = Parameters.StringValue;
@@ -35635,7 +35651,6 @@ var Device = function () {
             for (var i in this.layers) {
                 //features.push.apply(features, layer.features);
                 var layer = this.layers[i];
-                console.log(layer);
                 for (var j in layer.features) {
                     console.log(layer.features[j]);
                     features.push(layer.features[j]);
@@ -35657,7 +35672,7 @@ var Device = function () {
         value: function addLayer(layer) {
             layer.device = this;
             this.layers.push(layer);
-            this.sortLayers();
+            //this.sortLayers();
             if (Registry.viewManager) Registry.viewManager.addLayer(this.layers.indexOf(layer));
         }
     }, {
@@ -35721,7 +35736,7 @@ var Device = function () {
         key: "__loadLayersFromJSON",
         value: function __loadLayersFromJSON(json) {
             for (var i in json) {
-                var newLayer = Layer.fromJSON(json[i]);
+                var newLayer = _layer3.default.fromJSON(json[i]);
                 this.addLayer(newLayer);
             }
         }
@@ -35729,7 +35744,7 @@ var Device = function () {
         key: "__loadFeatureLayersFromInterchangeV1",
         value: function __loadFeatureLayersFromInterchangeV1(json) {
             for (var i in json) {
-                var newLayer = Layer.fromInterchangeV1(json[i]);
+                var newLayer = _layer3.default.fromInterchangeV1(json[i]);
                 this.addLayer(newLayer);
             }
         }
@@ -35785,6 +35800,36 @@ var Device = function () {
         value: function getYSpan() {
             return this.params.getValue("height");
         }
+
+        /**
+         * Create the layers necessary for creating a new level
+         * @return {*[]} returns a the layer objects created
+         */
+
+    }, {
+        key: "createNewLayerBlock",
+        value: function createNewLayerBlock() {
+            var flowlayer = new _layer3.default({ "z_offset": 0, "flip": false }, "flow");
+            var controllayer = new _layer3.default({ "z_offset": 0, "flip": false }, "control");
+            //TODO: remove cell layer from the whole system
+            var cell = new _layer3.default({ "z_offset": 0, "flip": false }, "cell");
+
+            this.addLayer(flowlayer);
+            this.addLayer(controllayer);
+
+            //TODO:Remove Cell layer from the whole system
+            this.addLayer(cell);
+
+            return [flowlayer, controllayer, cell];
+        }
+    }, {
+        key: "deleteLayer",
+        value: function deleteLayer(index) {
+
+            if (index != -1) {
+                this.layers.splice(index, 1);
+            }
+        }
     }], [{
         key: "getUniqueParameters",
         value: function getUniqueParameters() {
@@ -35831,7 +35876,7 @@ var Device = function () {
     return Device;
 }();
 
-module.exports = Device;
+exports.default = Device;
 
 },{"./feature":225,"./layer":226,"./parameter":227,"./parameters":230,"./params":235,"./registry":236}],223:[function(require,module,exports){
 'use strict';
@@ -36235,6 +36280,10 @@ exports.default = Feature;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _edgeFeature = require('./edgeFeature');
+
+var _edgeFeature2 = _interopRequireDefault(_edgeFeature);
+
 var _feature = require('./feature');
 
 var _feature2 = _interopRequireDefault(_feature);
@@ -36263,7 +36312,7 @@ var Layer = function () {
         _classCallCheck(this, Layer);
 
         this.params = new Params(values, Layer.getUniqueParameters(), Layer.getHeritableParameters());
-        this.name = StringValue(name);
+        this.name = String(name);
         this.features = {};
         this.featureCount = 0;
         this.device = undefined;
@@ -36323,7 +36372,7 @@ var Layer = function () {
     }, {
         key: '__ensureIsAFeature',
         value: function __ensureIsAFeature(feature) {
-            if (!(feature instanceof _feature2.default) && !(feature instanceof _textFeature2.default)) {
+            if (!(feature instanceof _feature2.default) && !(feature instanceof _textFeature2.default) && !(feature instanceof _edgeFeature2.default)) {
                 throw new Error("Provided value" + feature + " is not a Feature! Did you pass an ID by mistake?");
             }
         }
@@ -36488,7 +36537,7 @@ var Layer = function () {
 
 module.exports = Layer;
 
-},{"./feature":225,"./parameters":230,"./params":235,"./registry":236,"./textFeature":237}],227:[function(require,module,exports){
+},{"./edgeFeature":224,"./feature":225,"./parameters":230,"./params":235,"./registry":236,"./textFeature":237}],227:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -39899,6 +39948,10 @@ module.exports = SimpleQueue;
 },{}],247:[function(require,module,exports){
 'use strict';
 
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.setButtonColor = setButtonColor;
 var removeClass = function removeClass(el, className) {
   if (el.classList) el.classList.remove(className);else el.className = el.className.replace(new RegExp('(^|\\b)' + className.split(' ').join('|') + '(\\b|$)', 'gi'), ' ');
 };
@@ -39942,6 +39995,11 @@ function DnDFileController(selector, onDropCallback) {
   el_.addEventListener('dragleave', this.dragleave, false);
   el_.addEventListener('drop', this.drop, false);
 };
+
+function setButtonColor(button, color, text) {
+  button.style.background = color;
+  button.style.color = text;
+}
 
 module.exports.removeClass = removeClass;
 module.exports.addClass = addClass;
@@ -40649,7 +40707,20 @@ var renderAllColors = function renderAllColors(layer, orderedKeys) {
 };
 
 var getLayerColors = function getLayerColors(layer) {
-	if (layer && layer.color) return layerColors[layer.color];else return layerColors["red"];
+	if (!layer) {
+		throw new Error("Undefined color");
+	}
+	if (layer.color) {
+		return layerColors[layer.color];
+	} else {
+		if (layer.name == 'flow') {
+			return layerColors["indigo"];
+		} else if (layer.name == 'control') {
+			return layerColors["red"];
+		} else if (layer.name == 'cell') {
+			return layerColors["green"];
+		}
+	}
 };
 
 var getDefaultLayerColor = function getDefaultLayerColor(layer) {
@@ -40842,6 +40913,8 @@ exports.default = AdaptiveGrid;
 },{"../../core/registry":236,"../colors":252}],254:[function(require,module,exports){
 "use strict";
 
+var _htmlUtils = require("../utils/htmlUtils");
+
 var HTMLUtils = require("../utils/htmlUtils");
 var Registry = require("../core/registry");
 var Colors = require("./colors");
@@ -40917,9 +40990,7 @@ var svgButton = document.getElementById("svg_button");
 var button2D = document.getElementById("button_2D");
 //let button3D = document.getElementById("button_3D");
 
-var flowButton = document.getElementById("flow_button");
-var controlButton = document.getElementById("control_button");
-var cellsButton = document.getElementById("cells_button");
+// let cellsButton = document.getElementById("cells_button");
 
 var inactiveBackground = Colors.GREY_200;
 var inactiveText = Colors.BLACK;
@@ -40963,11 +41034,11 @@ var buttons = {
     "AlignmentMarks": alignmentMarksButton
 };
 
-var layerButtons = {
-    "0": flowButton,
-    "1": controlButton,
-    "2": cellsButton
-};
+// let layerButtons = {
+//     "0": flowButton,
+//     "1": controlButton,
+//     "2": cellsButton
+// };
 
 var layerIndices = {
     "0": 0,
@@ -40983,44 +41054,24 @@ function drop(ev) {
     ev.target.appendChild(document.getElementById(data));
 }
 
-function setButtonColor(button, background, text) {
-    button.style.background = background;
-    button.style.color = text;
-}
-
 function setActiveButton(feature) {
     killParamsWindow();
     //TODO: Make this less hacky so that it wont be such a big problem to modify the button selection criteria
     if (activeButton == "SelectButton" || activeButton == "InsertTextButton") {
-        setButtonColor(buttons[activeButton], inactiveBackground, inactiveText);
+        (0, _htmlUtils.setButtonColor)(buttons[activeButton], inactiveBackground, inactiveText);
     } else if (activeButton) {
-        setButtonColor(buttons[activeButton], inactiveBackground, inactiveText);
+        (0, _htmlUtils.setButtonColor)(buttons[activeButton], inactiveBackground, inactiveText);
     }
     activeButton = feature;
     var color = Colors.getDefaultFeatureColor(activeButton, "Basic", Registry.currentLayer);
-    setButtonColor(buttons[activeButton], color, activeText);
-}
-
-function setActiveLayer(layerName) {
-    if (activeLayer) setButtonColor(layerButtons[activeLayer], inactiveBackground, inactiveText);
-    activeLayer = layerName;
-    setActiveButton(activeButton);
-    var bgColor = Colors.getDefaultLayerColor(Registry.currentLayer);
-    setButtonColor(layerButtons[activeLayer], bgColor, activeText);
-    /* if (threeD) {
-         setButtonColor(button3D, Colors.getDefaultLayerColor(Registry.currentLayer), activeText);
-         setButtonColor(button2D, inactiveBackground, inactiveText);
-     } else {*/
-    setButtonColor(button2D, Colors.getDefaultLayerColor(Registry.currentLayer), activeText);
-    //setButtonColor(button3D, inactiveBackground, inactiveText);
-    // }
+    (0, _htmlUtils.setButtonColor)(buttons[activeButton], color, activeText);
 }
 
 function switchTo3D() {
     if (!threeD) {
         threeD = true;
-        setButtonColor(button3D, Colors.getDefaultLayerColor(Registry.currentLayer), activeText);
-        setButtonColor(button2D, inactiveBackground, inactiveText);
+        (0, _htmlUtils.setButtonColor)(button3D, Colors.getDefaultLayerColor(Registry.currentLayer), activeText);
+        (0, _htmlUtils.setButtonColor)(button2D, inactiveBackground, inactiveText);
         renderer.loadJSON(Registry.currentDevice.toJSON());
         var cameraCenter = view.getViewCenterInMillimeters();
         var height = Registry.currentDevice.params.getValue("height") / 1000;
@@ -41052,8 +41103,8 @@ function switchTo2D() {
         } else if (newCenterY > Registry.currentDevice.params.getValue("height")) {
             newCenterY = Registry.currentDevice.params.getValue("height");
         }
-        setButtonColor(button2D, Colors.getDefaultLayerColor(Registry.currentLayer), activeText);
-        setButtonColor(button3D, inactiveBackground, inactiveText);
+        (0, _htmlUtils.setButtonColor)(button2D, Colors.getDefaultLayerColor(Registry.currentLayer), activeText);
+        (0, _htmlUtils.setButtonColor)(button3D, inactiveBackground, inactiveText);
         Registry.viewManager.setCenter(new paper.Point(newCenterX, newCenterY));
         Registry.viewManager.setZoom(zoom);
         HTMLUtils.addClass(renderBlock, "hidden-block");
@@ -41100,9 +41151,9 @@ function setupAppPage() {
 
     selectToolButton.onclick = function () {
         Registry.viewManager.activateTool("MouseSelectTool");
-        if (activeButton) setButtonColor(buttons[activeButton], inactiveBackground, inactiveText);
+        if (activeButton) (0, _htmlUtils.setButtonColor)(buttons[activeButton], inactiveBackground, inactiveText);
         activeButton = "SelectButton";
-        setButtonColor(buttons["SelectButton"], Colors.DEEP_PURPLE_500, activeText);
+        (0, _htmlUtils.setButtonColor)(buttons["SelectButton"], Colors.DEEP_PURPLE_500, activeText);
     };
 
     saveDeviceSettingsButton.onclick = function () {
@@ -41141,9 +41192,9 @@ function setupAppPage() {
     };
 
     insertTextButton.onclick = function () {
-        if (activeButton) setButtonColor(buttons[activeButton], inactiveBackground, inactiveText);
+        if (activeButton) (0, _htmlUtils.setButtonColor)(buttons[activeButton], inactiveBackground, inactiveText);
         activeButton = "InsertTextButton";
-        setButtonColor(buttons["InsertTextButton"], Colors.DEEP_PURPLE_500, activeText);
+        (0, _htmlUtils.setButtonColor)(buttons["InsertTextButton"], Colors.DEEP_PURPLE_500, activeText);
     };
 
     acceptTextButton.onclick = function () {
@@ -41298,34 +41349,41 @@ function setupAppPage() {
 
     //}
 
-    flowButton.onclick = function () {
-        if (threeD) {
-            if (activeLayer == "0") renderer.toggleLayerView(0);else renderer.showLayer(0);
-        }
-        Registry.currentLayer = Registry.currentDevice.layers[0];
-        setActiveLayer("0");
-        Registry.viewManager.updateActiveLayer();
-    };
+    //Setup Tool Handlers
+    // flowButton.onclick = function() {
+    //     if (threeD) {
+    //         if (activeLayer == "0") renderer.toggleLayerView(0);
+    //         else renderer.showLayer(0);
+    //     }
+    //     Registry.currentLayer = Registry.currentDevice.layers[0];
+    //     setActiveLayer("0");
+    //     Registry.viewManager.updateActiveLayer();
+    //
+    // };
+    //
+    // controlButton.onclick = function() {
+    //     if (threeD) {
+    //         if (activeLayer == "1") renderer.toggleLayerView(1);
+    //         else renderer.showLayer(1);
+    //     }
+    //     Registry.currentLayer = Registry.currentDevice.layers[1];
+    //     setActiveLayer("1");
+    //     Registry.viewManager.updateActiveLayer();
+    // };
 
-    controlButton.onclick = function () {
-        if (threeD) {
-            if (activeLayer == "1") renderer.toggleLayerView(1);else renderer.showLayer(1);
-        }
-        Registry.currentLayer = Registry.currentDevice.layers[1];
-        setActiveLayer("1");
-        Registry.viewManager.updateActiveLayer();
-    };
 
-    cellsButton.onclick = function () {
-        if (threeD) {
-            if (activeLayer == "2") renderer.toggleLayerView(2);else renderer.showLayer(2);
-        }
-        Registry.currentLayer = Registry.currentDevice.layers[2];
-        setActiveLayer("2");
-        Registry.viewManager.updateActiveLayer();
-        console.log("Adaptive Grid Min Spacing: " + Registry.currentGrid.minSpacing);
-        console.log("Adaptive Grid Max Spacing: " + Registry.currentGrid.maxSpacing);
-    };
+    // cellsButton.onclick = function() {
+    //     if (threeD) {
+    //         if (activeLayer == "2") renderer.toggleLayerView(2);
+    //         else renderer.showLayer(2);
+    //     }
+    //     Registry.currentLayer = Registry.currentDevice.layers[2];
+    //     setActiveLayer("2");
+    //     Registry.viewManager.updateActiveLayer();
+    //     console.log("Adaptive Grid Min Spacing: " + Registry.currentGrid.minSpacing);
+    //     console.log("Adaptive Grid Max Spacing: " + Registry.currentGrid.maxSpacing);
+    //
+    // };
 
     interchangeV1Button.onclick = function () {
         var json = new Blob([JSON.stringify(Registry.currentDevice.toInterchangeV1())], {
@@ -41371,16 +41429,17 @@ function setupAppPage() {
         }
     };
 
-    button2D.onclick = function () {}
-    /*  killParamsWindow();
-      switchTo2D();*/
+    button2D.onclick = function () {
+        /*  killParamsWindow();
+          switchTo2D();*/
+    };
 
     //  button3D.onclick = function() {
     /* killParamsWindow();
      switchTo3D();*/
     //}
 
-    ;channelParams.onclick = paramsWindowFunction("Channel", "Basic");
+    channelParams.onclick = paramsWindowFunction("Channel", "Basic");
     connectionParams.onclick = paramsWindowFunction("Connection", "Basic");
     roundedChannelParams.onclick = paramsWindowFunction("RoundedChannel", "Basic");
     circleValveParams.onclick = paramsWindowFunction("CircleValve", "Basic");
@@ -41425,7 +41484,7 @@ function setupAppPage() {
     setupDragAndDropLoad("#c");
     setupDragAndDropLoad("#renderContainer");
     setActiveButton("Channel");
-    setActiveLayer("0");
+    //setActiveLayer("0");
     switchTo2D();
 }
 
@@ -41750,14 +41809,22 @@ var PaperView = function () {
         }
     }, {
         key: "updateLayer",
-        value: function updateLayer(layer, index) {
-            // do nothing, for now
-        }
-    }, {
-        key: "removeLayer",
-        value: function removeLayer(layer, index) {}
+        value: function updateLayer(layer, index) {}
         // do nothing, for now
 
+
+        /**
+         * Delete the layer from the paperview at the given index.
+         * @param index Integer
+         */
+
+    }, {
+        key: "removeLayer",
+        value: function removeLayer(index) {
+            if (index != -1) {
+                this.paperLayers.splice(index, 1);
+            }
+        }
 
         /* Rendering Features */
 
@@ -41845,7 +41912,6 @@ var PaperView = function () {
                 //TODO:Create render textfeature method that doesnt take other params
                 newPaperFeature = FeatureRenderer2D.renderText(feature);
             } else if (feature instanceof _edgeFeature2.default) {
-                console.log('added the edge feature to the paperview');
                 newPaperFeature = DXFObjectRenderer2D.renderEdgeFeature(feature);
                 newPaperFeature.selected = selected;
                 this.paperFeatures[newPaperFeature.featureID] = newPaperFeature;
@@ -47432,8 +47498,10 @@ var CellPositionTool = function (_PositionTool) {
         key: 'createNewFeature',
         value: function createNewFeature(point) {
             var featureIDs = [];
-            var flowlayer = Registry.currentDevice.layers[0];
-            var cell_layer = Registry.currentDevice.layers[2];
+
+            var currentlevel = Math.floor(Registry.currentDevice.layers.indexOf(Registry.currentLayer) / 3);
+            var flowlayer = Registry.currentDevice.layers[currentlevel * 3 + 0];
+            var cell_layer = Registry.currentDevice.layers[currentlevel * 3 + 2];
 
             var newFeature = _feature2.default.makeFeature(this.typeString, this.setString, {
                 "position": PositionTool.getTarget(point)
@@ -48204,7 +48272,7 @@ var MouseSelectTool = function (_MouseTool) {
 
 module.exports = MouseSelectTool;
 
-},{"../../core/registry":236,"../../utils/simpleQueue":249,"../pageSetup":254,"../ui/rightClickMenu":287,"./MouseTool":273}],279:[function(require,module,exports){
+},{"../../core/registry":236,"../../utils/simpleQueue":249,"../pageSetup":254,"../ui/rightClickMenu":289,"./MouseTool":273}],279:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -48281,8 +48349,9 @@ var MultilayerPositionTool = function (_PositionTool) {
         key: 'createNewFeature',
         value: function createNewFeature(point) {
             var featureIDs = [];
-            var flowlayer = Registry.currentDevice.layers[0];
-            var controllayer = Registry.currentDevice.layers[1];
+            var currentlevel = Math.floor(Registry.currentDevice.layers.indexOf(Registry.currentLayer) / 3);
+            var flowlayer = Registry.currentDevice.layers[currentlevel * 3 + 0];
+            var controllayer = Registry.currentDevice.layers[currentlevel * 3 + 1];
 
             var newFeature = _feature2.default.makeFeature(this.typeString, this.setString, {
                 "position": PositionTool.getTarget(point)
@@ -48908,8 +48977,413 @@ var BorderSettingsDialog = function () {
 exports.default = BorderSettingsDialog;
 
 },{"../../core/registry":236,"dxf-parser":67}],285:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var ChangeAllDialog = function () {
+    function ChangeAllDialog() {
+        _classCallCheck(this, ChangeAllDialog);
+
+        this.__componentsToChangeMap = new Map();
+        this.__dialog = document.getElementById("change_all_dialog");
+        this.__similarComponents = [];
+        this.__componentTable = document.getElementById("similar_components_table");
+        this.__changeAllButton = document.getElementById("change_all_button");
+
+        //Assign all event handlers
+
+        var ref = this;
+
+        this.__dialog.querySelector('.close').addEventListener('click', function () {
+            ref.__dialog.close();
+        });
+
+        this.__changeAllButton.addEventListener('click', function (event) {
+            //TODO: Change values of all the features associated with the components
+            ref.__modifyComponentParams();
+            ref.__dialog.close();
+        });
+    }
+
+    /**
+     * Method used to show the dialog
+     */
+
+
+    _createClass(ChangeAllDialog, [{
+        key: "showDialog",
+        value: function showDialog() {
+
+            for (var i in this.__similarComponents) {
+                this.__componentTable.deleteRow(-1);
+            }
+
+            var selectedcomponent = Registry.viewManager.view.selectedComponents[0];
+            var selectedcomponenttype = selectedcomponent.getType();
+            var params = selectedcomponent.getParams();
+
+            this.__paramsToChange = params;
+
+            //TODO: Find a better way to do this
+            if (this.__paramsToChange['position']) {
+                delete this.__paramsToChange['position'];
+            }
+
+            var allcomponents = Registry.currentDevice.getComponents();
+
+            var similarcomponents = [];
+
+            //Find all the similar components
+            for (var _i in allcomponents) {
+                var component = allcomponents[_i];
+                if (selectedcomponenttype == component.getType() && selectedcomponent.getID() != component.getID()) {
+
+                    this.__componentsToChangeMap.set(component.getID(), true);
+                    similarcomponents.push(component);
+                }
+            }
+
+            this.__similarComponents = similarcomponents;
+
+            var tr = void 0;
+            var cell = void 0;
+            var componenttoadd = void 0;
+
+            for (var _i2 in similarcomponents) {
+                componenttoadd = similarcomponents[_i2];
+                tr = this.__componentTable.insertRow();
+                cell = tr.insertCell(-1);
+                cell.appendChild(this.__createOptionButton(componenttoadd.getID(), true));
+                cell = tr.insertCell(-1);
+                cell.innerHTML = componenttoadd.getName();
+            }
+
+            this.__dialog.showModal();
+        }
+    }, {
+        key: "__createOptionButton",
+        value: function __createOptionButton(componentid, checked) {
+            var checkbox = document.createElement('input');
+            checkbox.type = "checkbox";
+            // checkbox.name = "name";
+            // checkbox.value = "value";
+            checkbox.id = "select_" + componentid;
+            checkbox.checked = checked;
+            checkbox.value = componentid;
+            //Track all the changes
+            var ref = this;
+            checkbox.addEventListener('change', function (event) {
+                var id = event.target.value;
+                ref.__componentsToChangeMap.set(id, event.target.checked);
+            });
+
+            return checkbox;
+        }
+    }, {
+        key: "__modifyComponentParams",
+        value: function __modifyComponentParams() {
+            for (var i in this.__similarComponents) {
+                var componenttochange = this.__similarComponents[i];
+                if (this.__componentsToChangeMap.get(componenttochange.getID())) {
+                    componenttochange.setParams(this.__paramsToChange);
+                }
+            }
+        }
+
+        // __createOptionButton(componentid, checked) {
+        //     let div = document.createElement("div");
+        //     let label = document.createElement("label");
+        //     label.className = "mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect";
+        //     label.setAttribute("for", componentid);
+        //     let input = document.createElement("input");
+        //     input.setAttribute("type", "checkbox");
+        //     input.setAttribute("id", "select_" + componentid);
+        //     // if (checked) input.checked = true;
+        //     input.className = "mdl-checkbox__input";
+        //     label.appendChild(input);
+        //     componentHandler.upgradeElement(label, "MaterialCheckbox");
+        //     div.setAttribute("style", "margin-left: auto; margin-right: auto; display: block;width:12px;position:relative;");
+        //     div.appendChild(label);
+        //
+        //
+        //     //Track all the changes
+        //     let ref = this;
+        //     // input.addEventListener('update', function (event) {
+        //     //     //
+        //     //     console.log(event);
+        //     // });
+        //
+        //     return div;
+        // };
+
+    }]);
+
+    return ChangeAllDialog;
+}();
+
+exports.default = ChangeAllDialog;
+
+},{}],286:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _htmlUtils = require('../../utils/htmlUtils');
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Registry = require('../../core/registry');
+var Colors = require('../colors');
+
+var inactiveButtonBackground = Colors.GREY_200;
+var inactiveButtonText = Colors.BLACK;
+var activeButtonText = Colors.WHITE;
+
+var LayerToolBar = function () {
+    function LayerToolBar() {
+        _classCallCheck(this, LayerToolBar);
+
+        this.__toolBar = document.getElementById("layer-toolbar");
+        if (!this.__toolBar) {
+            console.error("Could not find the LayerToolBar on the HTML page");
+        }
+
+        this.__layerButtons = new Map(); //Simple Reference System
+
+        this.__activeLayer = null;
+
+        this.__levelCount = 0;
+
+        this.__addNewLevelButton = document.getElementById("add-new-level");
+
+        var ref = this;
+
+        var registryref = Registry;
+
+        this.__addNewLevelButton.addEventListener('click', function (event) {
+
+            //Create new layers in the data model
+            registryref.viewManager.createNewLayerBlock();
+
+            //Update the UI
+            ref.__levelCount += 1;
+
+            ref.__generateUI();
+        });
+
+        this.__generateUI();
+    }
+
+    _createClass(LayerToolBar, [{
+        key: '__generateButtonHandlers',
+        value: function __generateButtonHandlers() {
+            var flowButtons = document.querySelectorAll(".flow-button");
+            var controlButtons = document.querySelectorAll(".control-button");
+
+            var ref = this;
+
+            var _loop = function _loop(i) {
+                var flowButton = flowButtons[i];
+                flowButton.onclick = function (event) {
+                    Registry.currentLayer = Registry.currentDevice.layers[flowButton.dataset.layerindex];
+                    ref.setActiveLayer(flowButton.dataset.layerindex);
+                    Registry.viewManager.updateActiveLayer();
+                };
+            };
+
+            for (var i = 0; i < flowButtons.length; i++) {
+                _loop(i);
+            }
+
+            var _loop2 = function _loop2(i) {
+                var controlButton = controlButtons[i];
+                controlButton.onclick = function (event) {
+                    Registry.currentLayer = Registry.currentDevice.layers[controlButton.dataset.layerindex];
+                    ref.setActiveLayer(controlButton.dataset.layerindex);
+                    Registry.viewManager.updateActiveLayer();
+                };
+            };
+
+            for (var i = 0; i < controlButtons.length; i++) {
+                _loop2(i);
+            }
+        }
+    }, {
+        key: 'setActiveLayer',
+        value: function setActiveLayer(layerName) {
+            //Decolor the active button
+            if (this.__activeLayer) {
+                (0, _htmlUtils.setButtonColor)(this.__layerButtons.get(this.__activeLayer), inactiveButtonBackground, inactiveButtonText);
+            }
+
+            var bgColor = void 0; // = Colors.getDefaultLayerColor(Registry.currentLayer);
+            if (layerName % 3 == 0) {
+                bgColor = Colors.INDIGO_500;
+            } else if (layerName % 3 == 1) {
+                bgColor = Colors.RED_500;
+            } else {
+                bgColor = Colors.GREEN_500;
+            }
+
+            (0, _htmlUtils.setButtonColor)(this.__layerButtons.get(layerName), bgColor, activeButtonText);
+
+            this.__activeLayer = layerName;
+        }
+
+        /**
+         * Adds the UI elements for the new block
+         * @private
+         */
+
+    }, {
+        key: '__addNewLevel',
+        value: function __addNewLevel(index) {
+
+            //Copy the the first button group
+            var buttongroup = document.querySelector('#template-layer-block');
+            var copy = buttongroup.cloneNode(true);
+
+            //Make the delete button visible since the first layer ui keeps it hidden
+            copy.querySelector(".delete-level").style.visibility = "visible";
+
+            //Change all the parameters for the UI elements
+
+            //Update the level index for the layerblock
+            copy.dataset.levelindex = String(index);
+
+            //Change the Label
+            var label = copy.querySelector(".level-index");
+            label.innerHTML = "LEVEL " + (index + 1);
+
+            //Change the button indices
+            var flowbutton = copy.querySelector(".flow-button");
+            flowbutton.dataset.layerindex = String(index * 3);
+            (0, _htmlUtils.setButtonColor)(flowbutton, inactiveButtonBackground, inactiveButtonText);
+
+            var controlbutton = copy.querySelector(".control-button");
+            controlbutton.dataset.layerindex = String(index * 3 + 1);
+            (0, _htmlUtils.setButtonColor)(controlbutton, inactiveButtonBackground, inactiveButtonText);
+
+            //Add reference to the deletebutton
+            var deletebutton = copy.querySelector(".delete-level");
+            deletebutton.dataset.levelindex = String(index);
+
+            return copy;
+        }
+
+        /**
+         *  Updates the button references held by the toolbar object, this is to allow me to easily modify
+         *  the buttons based on what layer index we are using
+         * @private
+         */
+
+    }, {
+        key: '__updateLayerButtonReferences',
+        value: function __updateLayerButtonReferences() {
+            var flowButtons = document.querySelectorAll(".flow-button");
+            var controlButtons = document.querySelectorAll(".control-button");
+
+            for (var i = 0; i < flowButtons.length; i++) {
+                var _flowButton = flowButtons[i];
+                this.__layerButtons.set(_flowButton.dataset.layerindex, _flowButton);
+            }
+
+            for (var _i = 0; _i < controlButtons.length; _i++) {
+                var _controlButton = controlButtons[_i];
+                this.__layerButtons.set(_controlButton.dataset.layerindex, _controlButton);
+            }
+        }
+
+        /**
+         * Generates all the event handlers for the action buttons
+         * @private
+         */
+
+    }, {
+        key: '__generateLevelActionButtonHandlers',
+        value: function __generateLevelActionButtonHandlers() {
+            var deleteButtons = document.querySelectorAll(".delete-level");
+
+            var ref = this;
+
+            var _loop3 = function _loop3(i) {
+                var deletebutton = deleteButtons[i];
+                deletebutton.addEventListener('click', function (event) {
+                    ref.deleteLevel(parseInt(deletebutton.dataset.levelindex));
+                });
+            };
+
+            for (var i = 0; i < deleteButtons.length; i++) {
+                _loop3(i);
+            }
+        }
+
+        /**
+         * Deletes the level at the given index
+         * @param levelindex Integer
+         */
+
+    }, {
+        key: 'deleteLevel',
+        value: function deleteLevel(levelindex) {
+
+            //First tell the viewmanager to delete the levels
+            Registry.viewManager.deleteLayerBlock(levelindex);
+            //Next delete the ux buttons
+            var buttongroups = this.__toolBar.querySelectorAll('.layer-block');
+
+            for (var i = 0; i < buttongroups.length; i++) {
+                if (buttongroups[i].dataset.levelindex == levelindex) {
+                    this.__toolBar.removeChild(buttongroups[i]);
+                }
+            }
+
+            this.__levelCount -= 1;
+
+            this.__generateUI();
+        }
+    }, {
+        key: '__generateUI',
+        value: function __generateUI() {
+            //Clear out all the UI elements
+            var buttongroups = this.__toolBar.querySelectorAll('.layer-block');
+
+            //Delete all things except the first one
+            for (var i = buttongroups.length - 1; i > 0; i--) {
+                var node = buttongroups[i];
+                this.__toolBar.removeChild(node);
+            }
+
+            //Create the UI elements for everything
+            for (var _i2 = 1; _i2 <= this.__levelCount; _i2++) {
+                var copy = this.__addNewLevel(_i2);
+                this.__toolBar.appendChild(copy);
+            }
+            this.__updateLayerButtonReferences();
+            this.__generateButtonHandlers();
+            this.__generateLevelActionButtonHandlers();
+        }
+    }]);
+
+    return LayerToolBar;
+}();
+
+exports.default = LayerToolBar;
+
+},{"../../core/registry":236,"../../utils/htmlUtils":247,"../colors":252}],287:[function(require,module,exports){
 arguments[4][251][0].apply(exports,arguments)
-},{"../../core/feature":225,"../../core/parameters":230,"../../core/registry":236,"../../featureSets":245,"../../utils/htmlUtils":247,"dup":251}],286:[function(require,module,exports){
+},{"../../core/feature":225,"../../core/parameters":230,"../../core/registry":236,"../../featureSets":245,"../../utils/htmlUtils":247,"dup":251}],288:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -49025,7 +49499,7 @@ var ResolutionToolBar = function () {
 
 exports.default = ResolutionToolBar;
 
-},{"../../core/registry":236,"../grid/adaptiveGrid":253,"wnumb":219}],287:[function(require,module,exports){
+},{"../../core/registry":236,"../grid/adaptiveGrid":253,"wnumb":219}],289:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -49080,6 +49554,8 @@ var RightClickMenu = function () {
         });
         this.__copyToAllButton.addEventListener('click', function (event) {
             console.log("Change all the component parameters", event);
+            Registry.viewManager.changeAllDialog.showDialog();
+            ref.close();
         });
     }
 
@@ -49126,7 +49602,7 @@ var RightClickMenu = function () {
 
 exports.default = RightClickMenu;
 
-},{"../../utils/htmlUtils":247,"./parameterMenu":285}],288:[function(require,module,exports){
+},{"../../utils/htmlUtils":247,"./parameterMenu":287}],290:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -49154,7 +49630,7 @@ var RightPanel = function RightPanel() {
 
 exports.default = RightPanel;
 
-},{}],289:[function(require,module,exports){
+},{}],291:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -49244,7 +49720,7 @@ var ZoomToolBar = function () {
 
 exports.default = ZoomToolBar;
 
-},{"../../core/registry":236}],290:[function(require,module,exports){
+},{"../../core/registry":236}],292:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -49260,6 +49736,10 @@ var _zoomToolBar2 = _interopRequireDefault(_zoomToolBar);
 var _borderSettingDialog = require("./ui/borderSettingDialog");
 
 var _borderSettingDialog2 = _interopRequireDefault(_borderSettingDialog);
+
+var _device = require("../core/device");
+
+var _device2 = _interopRequireDefault(_device);
 
 var _resolutionToolBar = require("./ui/resolutionToolBar");
 
@@ -49281,12 +49761,21 @@ var _edgeFeature = require("../core/edgeFeature");
 
 var _edgeFeature2 = _interopRequireDefault(_edgeFeature);
 
+var _changeAllDialog = require("./ui/changeAllDialog");
+
+var _changeAllDialog2 = _interopRequireDefault(_changeAllDialog);
+
+var _layerToolBar = require("./ui/layerToolBar");
+
+var _layerToolBar2 = _interopRequireDefault(_layerToolBar);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var Registry = require("../core/registry");
-var Device = require("../core/device");
+// var Device = require("../core/device");
+
 var ChannelTool = require("./tools/channelTool");
 var ConnectionTool = require("./tools/connectionTool");
 var MouseTool = require("./tools/mouseTool");
@@ -49310,8 +49799,10 @@ var ViewManager = function () {
         this.middleMouseTool = new PanTool();
         this.rightMouseTool = new SelectTool();
         this.rightPanel = new _rightPanel2.default();
+        this.changeAllDialog = new _changeAllDialog2.default();
         this.resolutionToolBar = new _resolutionToolBar2.default();
         this.borderDialog = new _borderSettingDialog2.default();
+        this.layerToolBar = new _layerToolBar2.default();
         var reference = this;
         this.updateQueue = new SimpleQueue(function () {
             reference.view.refresh();
@@ -49424,6 +49915,11 @@ var ViewManager = function () {
         this.activateTool("Channel");
     }
 
+    /**
+     * Initiates the copy operation on the selected feature
+     */
+
+
     _createClass(ViewManager, [{
         key: "initiateCopy",
         value: function initiateCopy() {
@@ -49447,6 +49943,14 @@ var ViewManager = function () {
             this.__addAllDeviceLayers(device, false);
             this.refresh(refresh);
         }
+
+        /**
+         * Adds all the layers in the device
+         * @param device
+         * @param refresh
+         * @private
+         */
+
     }, {
         key: "__addAllDeviceLayers",
         value: function __addAllDeviceLayers(device) {
@@ -49524,6 +50028,63 @@ var ViewManager = function () {
                 this.__addAllLayerFeatures(layer, false);
                 this.refresh(refresh);
             }
+        }
+
+        /**
+         * Create a new set of layers (flow, control and cell) for the upcoming level.
+         */
+
+    }, {
+        key: "createNewLayerBlock",
+        value: function createNewLayerBlock() {
+            var newlayers = Registry.currentDevice.createNewLayerBlock();
+
+            //Find all the edge features
+            var edgefeatures = [];
+            var devicefeatures = Registry.currentDevice.layers[0].features;
+            var feature = void 0;
+
+            for (var i in devicefeatures) {
+                feature = devicefeatures[i];
+                if (feature.fabType == "EDGE") {
+                    edgefeatures.push(feature);
+                }
+            }
+
+            //Add the Edge Features from layer '0'
+            // to all other layers
+            for (var _i in newlayers) {
+                for (var j in edgefeatures) {
+                    newlayers[_i].addFeature(edgefeatures[j], false);
+                }
+            }
+
+            //Added the new layers
+            for (var _i2 in newlayers) {
+                var layertoadd = newlayers[_i2];
+                var index = this.view.paperLayers.length;
+                this.addLayer(layertoadd, index, true);
+            }
+        }
+
+        /**
+         * Deletes the layers at the level index, we have 3-set of layers so it deletes everything at
+         * that level
+         * @param levelindex integer only
+         */
+
+    }, {
+        key: "deleteLayerBlock",
+        value: function deleteLayerBlock(levelindex) {
+            //Delete the levels in the device model
+            Registry.currentDevice.deleteLayer(levelindex * 3);
+            Registry.currentDevice.deleteLayer(levelindex * 3 + 1);
+            Registry.currentDevice.deleteLayer(levelindex * 3 + 2);
+
+            //Delete the levels in the render model
+            this.view.removeLayer(levelindex * 3);
+            this.view.removeLayer(levelindex * 3 + 1);
+            this.view.removeLayer(levelindex * 3 + 2);
         }
     }, {
         key: "removeLayer",
@@ -49658,7 +50219,6 @@ var ViewManager = function () {
             //Get the bounds for the border feature and then update the device dimensions
             var xspan = Registry.currentDevice.getXSpan();
             var yspan = Registry.currentDevice.getYSpan();
-            console.log("Span", xspan, yspan);
             borderfeature.generateRectEdge(xspan, yspan);
 
             //Adding the feature to all the layers
@@ -49683,8 +50243,8 @@ var ViewManager = function () {
             }
 
             //Adding the feature to all the layers
-            for (var _i in Registry.currentDevice.layers) {
-                var layer = Registry.currentDevice.layers[_i];
+            for (var _i3 in Registry.currentDevice.layers) {
+                var layer = Registry.currentDevice.layers[_i3];
                 layer.addFeature(customborderfeature);
             }
 
@@ -49725,8 +50285,8 @@ var ViewManager = function () {
             }
 
             //Delete all the features
-            for (var _i2 in edgefeatures) {
-                Registry.currentDevice.removeFeatureByID(edgefeatures[_i2].getID());
+            for (var _i4 in edgefeatures) {
+                Registry.currentDevice.removeFeatureByID(edgefeatures[_i4].getID());
             }
 
             console.log("Edgefeatures", edgefeatures);
@@ -49867,12 +50427,12 @@ var ViewManager = function () {
             var version = json.version;
             if (null == version || undefined == version) {
                 console.log("Loading Legacy Format...");
-                Registry.currentDevice = Device.fromJSON(json);
+                Registry.currentDevice = _device2.default.fromJSON(json);
             } else {
                 console.log("Version Number: " + version);
                 switch (version) {
                     case 1:
-                        Registry.currentDevice = Device.fromInterchangeV1(json);
+                        Registry.currentDevice = _device2.default.fromInterchangeV1(json);
                         break;
                     default:
                         alert("Version \'" + version + "\' is not supported by 3DuF !");
@@ -50060,4 +50620,4 @@ var ViewManager = function () {
 
 exports.default = ViewManager;
 
-},{"../core/device":222,"../core/dxfObject":223,"../core/edgeFeature":224,"../core/feature":225,"../core/registry":236,"../utils/SimpleQueue":246,"./PanAndZoom":250,"./tools/ComponentPositionTool":272,"./tools/cellPositionTool":274,"./tools/channelTool":275,"./tools/connectionTool":276,"./tools/insertTextTool":277,"./tools/mouseSelectTool":278,"./tools/mouseTool":279,"./tools/multilayerPositionTool":280,"./tools/panTool":281,"./tools/positionTool":282,"./tools/selectTool":283,"./ui/borderSettingDialog":284,"./ui/resolutionToolBar":286,"./ui/rightPanel":288,"./ui/zoomToolBar":289}]},{},[220]);
+},{"../core/device":222,"../core/dxfObject":223,"../core/edgeFeature":224,"../core/feature":225,"../core/registry":236,"../utils/SimpleQueue":246,"./PanAndZoom":250,"./tools/ComponentPositionTool":272,"./tools/cellPositionTool":274,"./tools/channelTool":275,"./tools/connectionTool":276,"./tools/insertTextTool":277,"./tools/mouseSelectTool":278,"./tools/mouseTool":279,"./tools/multilayerPositionTool":280,"./tools/panTool":281,"./tools/positionTool":282,"./tools/selectTool":283,"./ui/borderSettingDialog":284,"./ui/changeAllDialog":285,"./ui/layerToolBar":286,"./ui/resolutionToolBar":288,"./ui/rightPanel":290,"./ui/zoomToolBar":291}]},{},[220]);
