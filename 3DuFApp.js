@@ -35568,7 +35568,7 @@ window.onload = function () {
     Registry.viewManager.generateBorder();
 };
 
-},{"./core/device":225,"./core/layer":229,"./core/registry":239,"./examples/jsonExamples":241,"./view/colors":255,"./view/grid/adaptiveGrid":257,"./view/pageSetup":259,"./view/paperView":260,"./view/render3D/ThreeDeviceRenderer":268,"./view/ui/zoomToolBar":297,"./view/viewManager":298,"dxf-parser":69}],224:[function(require,module,exports){
+},{"./core/device":225,"./core/layer":229,"./core/registry":239,"./examples/jsonExamples":241,"./view/colors":255,"./view/grid/adaptiveGrid":257,"./view/pageSetup":259,"./view/paperView":260,"./view/render3D/ThreeDeviceRenderer":268,"./view/ui/zoomToolBar":299,"./view/viewManager":300,"dxf-parser":69}],224:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -35692,6 +35692,17 @@ var Component = function () {
         }
 
         /**
+         * Returns the position of the component
+         * @return {*|string}
+         */
+
+    }, {
+        key: "getPosition",
+        value: function getPosition() {
+            return this.__params["position"].getValue();
+        }
+
+        /**
          * Returns the value of the parameter stored against the following key in teh component params
          * @param key
          * @returns {*}
@@ -35794,6 +35805,19 @@ var Component = function () {
                     var feature = Registry.currentDevice.getFeatureByID(featureidtochange);
                     feature.updateParameter(key, value.getValue());
                 }
+            }
+        }
+    }, {
+        key: "updateComponetPosition",
+        value: function updateComponetPosition(center) {
+            var xpos = center[0];
+            var ypos = center[1];
+
+            for (var i in this.__features) {
+                var featureidtochange = this.__features[i];
+
+                var feature = Registry.currentDevice.getFeatureByID(featureidtochange);
+                feature.updateParameter('position', center);
             }
         }
 
@@ -40487,24 +40511,25 @@ var PanAndZoom = function () {
 exports.default = PanAndZoom;
 
 },{"../core/registry":239}],254:[function(require,module,exports){
-"use strict";
+'use strict';
 
-var _feature = require("../../core/feature");
+var _htmlUtils = require('../../utils/htmlUtils');
+
+var HTMLUtils = _interopRequireWildcard(_htmlUtils);
+
+var _feature = require('../../core/feature');
 
 var _feature2 = _interopRequireDefault(_feature);
 
+var _parameters = require('../../core/parameters');
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var HTMLUtils = require("../../utils/htmlUtils");
-//var Feature = require("../../core/feature");
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 var Registry = require("../../core/registry");
-var Parameters = require("../../core/parameters");
-var FeatureSets = require("../../featureSets");
 
-var FloatValue = Parameters.FloatValue;
-var BooleanValue = Parameters.BooleanValue;
-var StringValue = Parameters.StringValue;
+var FeatureSets = require("../../featureSets");
 
 var createSlider = function createSlider(min, max, step, start, id) {
     var div = document.createElement("div");
@@ -40610,7 +40635,7 @@ var generateUpdateFunction = function generateUpdateFunction(sourceID, targetID,
         var target = document.getElementById(targetID);
         var param;
         try {
-            param = new FloatValue(parseFloat(source.value));
+            param = new _parameters.FloatValue(parseFloat(source.value));
         } catch (err) {
             console.log("Invalid Float value.");
             return;
@@ -40643,17 +40668,17 @@ var generateCheckFunction = function generateCheckFunction(sourceID, targetID, t
         var param;
         var param_to_pass;
         try {
-            param = new BooleanValue(source.checked);
+            param = new _parameters.BooleanValue(source.checked);
         } catch (err) {
             console.log("Invalid Boolean value.");
             return;
         }
         if (param.getValue()) {
             target.innerHTML = "V";
-            param_to_pass = new StringValue("V");
+            param_to_pass = new _parameters.StringValue("V");
         } else {
             target.innerHTML = "H";
-            param_to_pass = new StringValue("H");
+            param_to_pass = new _parameters.StringValue("H");
         }
         Registry.viewManager.adjustParams(typeString, setString, paramString, param_to_pass.getValue());
     };
@@ -40666,17 +40691,17 @@ var generateCheckFunctionDir = function generateCheckFunctionDir(sourceID, targe
         var param;
         var param_to_pass;
         try {
-            param = new BooleanValue(source.checked);
+            param = new _parameters.BooleanValue(source.checked);
         } catch (err) {
             console.log("Invalid Boolean value.");
             return;
         }
         if (param.getValue()) {
             target.innerHTML = "IN";
-            param_to_pass = new StringValue("IN");
+            param_to_pass = new _parameters.StringValue("IN");
         } else {
             target.innerHTML = "OUT";
-            param_to_pass = new StringValue("OUT");
+            param_to_pass = new _parameters.StringValue("OUT");
         }
         Registry.viewManager.adjustParams(typeString, setString, paramString, param_to_pass.getValue());
     };
@@ -41455,10 +41480,7 @@ var MouseAndKeyboardHandler = function () {
                     paper.project.deselectAll();
 
                     //Change active tool to select tool
-                    console.log("ref: ", reference);
-                    reference.activateTool("MouseSelectTool");
-
-                    reference.componentToolBar.setActiveButton("SelectButton");
+                    reference.resetToDefaultTool();
                 }
 
                 if ((event.ctrlKey || event.metaKey) && key === 65) {
@@ -47827,7 +47849,7 @@ var ComponentPositionTool = function (_PositionTool) {
 
 module.exports = ComponentPositionTool;
 
-},{"../../core/feature":228,"../../core/registry":239,"../../utils/simpleQueue":252,"../pageSetup":259,"./mouseTool":284,"./positionTool":287}],278:[function(require,module,exports){
+},{"../../core/feature":228,"../../core/registry":239,"../../utils/simpleQueue":252,"../pageSetup":259,"./mouseTool":284,"./positionTool":288}],278:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -47952,7 +47974,7 @@ var CellPositionTool = function (_PositionTool) {
 
 module.exports = CellPositionTool;
 
-},{"../../core/feature":228,"../../core/registry":239,"../../utils/simpleQueue":252,"../pageSetup":259,"./positionTool":287}],280:[function(require,module,exports){
+},{"../../core/feature":228,"../../core/registry":239,"../../utils/simpleQueue":252,"../pageSetup":259,"./positionTool":288}],280:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -48405,7 +48427,7 @@ var InsertTextTool = function (_MouseTool) {
 
 module.exports = InsertTextTool;
 
-},{"../../core/params":238,"../../core/registry":239,"../../core/textFeature":240,"../../utils/simpleQueue":252,"../pageSetup":259,"./mouseTool":284,"./positionTool":287}],283:[function(require,module,exports){
+},{"../../core/params":238,"../../core/registry":239,"../../core/textFeature":240,"../../utils/simpleQueue":252,"../pageSetup":259,"./mouseTool":284,"./positionTool":288}],283:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -48678,7 +48700,7 @@ var MouseSelectTool = function (_MouseTool) {
 
 module.exports = MouseSelectTool;
 
-},{"../../core/registry":239,"../../utils/simpleQueue":252,"../pageSetup":259,"../ui/rightClickMenu":295,"./MouseTool":278}],284:[function(require,module,exports){
+},{"../../core/registry":239,"../../utils/simpleQueue":252,"../pageSetup":259,"../ui/rightClickMenu":297,"./MouseTool":278}],284:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -48717,6 +48739,293 @@ var MouseTool = function () {
 module.exports = MouseTool;
 
 },{"../../core/registry":239}],285:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _moveToolBar = require("../ui/moveToolBar");
+
+var _moveToolBar2 = _interopRequireDefault(_moveToolBar);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var Registry = require("../../core/registry");
+var MouseTool = require("./MouseTool");
+var SimpleQueue = require("../../utils/simpleQueue");
+
+var MoveTool = function (_MouseTool) {
+    _inherits(MoveTool, _MouseTool);
+
+    function MoveTool() {
+        _classCallCheck(this, MoveTool);
+
+        var _this = _possibleConstructorReturn(this, (MoveTool.__proto__ || Object.getPrototypeOf(MoveTool)).call(this));
+
+        _this.__moveWindow = new _moveToolBar2.default(_this);
+
+        // this.dragging = false;
+        // this.dragStart = null;
+        // this.lastPoint = null;
+        // this.currentSelectBox = null;
+        // this.currentSelection = [];
+        var ref = _this;
+        // this.updateQueue = new SimpleQueue(function () {
+        //     ref.dragHandler();
+        // }, 20);
+        _this.down = function (event) {
+            // Registry.viewManager.killParamsWindow();
+            ref.mouseDownHandler(event);
+            // ref.dragging = true;
+            // ref.showTarget();
+        };
+        _this.move = function (event) {
+            // if (ref.dragging) {
+            //     ref.lastPoint = MouseTool.getEventPosition(event);
+            //     ref.updateQueue.run();
+            // }
+            // ref.showTarget();
+        };
+        _this.up = function (event) {
+            // ref.dragging = false;
+            ref.mouseUpHandler(MouseTool.getEventPosition(event));
+            // ref.showTarget();
+        };
+        return _this;
+    }
+
+    _createClass(MoveTool, [{
+        key: "activate",
+        value: function activate(component) {
+            console.log("Activating the tool for a new component", component);
+            //Store the component position here
+            this.__currentComponent = component;
+            this.__originalPosition = component.getPosition();
+            this.__moveWindow.showWindow();
+            this.__moveWindow.updateUIPos(this.__originalPosition);
+        }
+    }, {
+        key: "unactivate",
+        value: function unactivate() {
+            Registry.viewManager.resetToDefaultTool();
+        }
+    }, {
+        key: "processUIPosition",
+        value: function processUIPosition(xpos, ypos) {
+            console.log("new position", xpos, ypos);
+            this.__currentComponent.updateComponetPosition([xpos, ypos]);
+        }
+    }, {
+        key: "revertToOriginalPosition",
+        value: function revertToOriginalPosition() {
+            this.__currentComponent.updateComponetPosition(this.__originalPosition);
+        }
+    }, {
+        key: "dragHandler",
+        value: function dragHandler() {}
+        // if (this.dragStart) {
+        //     if (this.currentSelectBox) {
+        //         this.currentSelectBox.remove();
+        //     }
+        //     this.currentSelectBox = this.rectSelect(this.dragStart, this.lastPoint);
+        // }
+
+
+        // showTarget() {
+        //     Registry.viewManager.removeTarget();
+        // }
+
+    }, {
+        key: "mouseUpHandler",
+        value: function mouseUpHandler(event) {
+            // if (this.currentSelectBox) {
+            //     this.currentSelection = Registry.viewManager.hitFeaturesWithViewElement(this.currentSelectBox);
+            //     this.selectFeatures();
+            // }
+            // this.killSelectBox();
+            console.log("Up event", event);
+        }
+    }, {
+        key: "removeFeatures",
+        value: function removeFeatures() {
+            if (this.currentSelection.length > 0) {
+                for (var i = 0; i < this.currentSelection.length; i++) {
+                    var paperFeature = this.currentSelection[i];
+                    Registry.currentDevice.removeFeatureByID(paperFeature.featureID);
+                }
+                this.currentSelection = [];
+                Registry.canvasManager.render();
+            }
+        }
+    }, {
+        key: "mouseDownHandler",
+        value: function mouseDownHandler(event) {
+            // let point = MouseTool.getEventPosition(event);
+            // let target = this.hitFeature(point);
+            // if (target) {
+            //     if (target.selected) {
+            //         let feat = Registry.currentDevice.getFeatureByID(target.featureID);
+            //         Registry.viewManager.updateDefaultsFromFeature(feat);
+            //         let rightclickmenu = new RightClickMenu(feat);
+            //         rightclickmenu.show(event);
+            //         Registry.viewManager.rightClickMenu = rightclickmenu;
+            //         this.rightClickMenu = rightclickmenu;
+            //         // let func = PageSetup.paramsWindowFunction(feat.getType(), feat.getSet());
+            //         //func(event);
+            //     } else {
+            //         this.deselectFeatures();
+            //         this.selectFeature(target);
+            //     }
+            //
+            //
+            // } else {
+            //     this.deselectFeatures();
+            //     this.dragStart = point;
+            // }
+            console.log("Down event", event);
+        }
+
+        // killSelectBox() {
+        //     if (this.currentSelectBox) {
+        //         this.currentSelectBox.remove();
+        //         this.currentSelectBox = null;
+        //     }
+        //     this.dragStart = null;
+        // }
+        //
+        // hitFeature(point) {
+        //     let target = Registry.viewManager.hitFeature(point);
+        //     return target;
+        // }
+
+        /**
+         * Function that is fired when we click to select a single object on the paperjs canvas
+         * @param paperElement
+         */
+        // selectFeature(paperElement) {
+        //     this.currentSelection.push(paperElement);
+        //
+        //     //Find the component that owns this feature and then select all of the friends
+        //     let component = this.__getComponentWithFeatureID(paperElement.featureID);
+        //     if (component == null) {
+        //         //Does not belong to a component, hence this returns
+        //         paperElement.selected = true;
+        //
+        //     } else {
+        //         //Belongs to the component so we basically select all features with this id
+        //         let featureIDs = component.getFeatureIDs();
+        //         for (let i in featureIDs) {
+        //             let featureid = featureIDs[i];
+        //             let actualfeature = Registry.viewManager.view.paperFeatures[featureid];
+        //             actualfeature.selected = true;
+        //         }
+        //
+        //         Registry.viewManager.view.selectedComponents.push(component);
+        //     }
+        // }
+
+        // /**
+        //  * Finds and return the corresponding Component Object in the Registry's current device associated with
+        //  * the featureid. Returns null if no component is found.
+        //  *
+        //  * @param featureid
+        //  * @return {Component}
+        //  * @private
+        //  */
+        // __getComponentWithFeatureID(featureid) {
+        //     // Get component with the features
+        //
+        //     let device_components = Registry.currentDevice.getComponents();
+        //
+        //     //Check against every component
+        //     for (let i in device_components) {
+        //         let component = device_components[i];
+        //         //Check against features in the in the component
+        //         let componentfeatures = component.getFeatureIDs();
+        //         let index = componentfeatures.indexOf(featureid);
+        //
+        //         if (index != -1) {
+        //             //Found it !!
+        //             console.log("Found Feature: " + featureid + " in component: " + component.getID());
+        //             return component;
+        //         }
+        //     }
+        //
+        //     return null;
+        // }
+
+
+        /**
+         * Function that is fired when we drag and select an area on the paperjs canvas
+         */
+        // selectFeatures() {
+        //     if (this.currentSelection) {
+        //         for (let i = 0; i < this.currentSelection.length; i++) {
+        //             let paperFeature = this.currentSelection[i];
+        //
+        //             //Find the component that owns this feature and then select all of the friends
+        //             let component = this.__getComponentWithFeatureID(paperFeature.featureID);
+        //
+        //             if (component == null) {
+        //                 //Does not belong to a component hence do the normal stuff
+        //                 paperFeature.selected = true;
+        //
+        //             } else {
+        //                 //Belongs to the component so we basically select all features with this id
+        //                 let featureIDs = component.getFeatureIDs();
+        //                 for (let i in featureIDs) {
+        //                     let featureid = featureIDs[i];
+        //                     let actualfeature = Registry.viewManager.view.paperFeatures[featureid];
+        //                     actualfeature.selected = true;
+        //                 }
+        //
+        //                 Registry.viewManager.view.selectedComponents.push(component);
+        //             }
+        //
+        //         }
+        //     }
+        // }
+
+        // deselectFeatures() {
+        //     if(this.rightClickMenu){
+        //         this.rightClickMenu.close();
+        //         this.rightClickMenu = null;
+        //     }
+        //     paper.project.deselectAll();
+        //     this.currentSelection = [];
+        // }
+
+        // abort() {
+        //     this.deselectFeatures();
+        //     this.killSelectBox();
+        // }
+
+        // rectSelect(point1, point2) {
+        //     let rect = new paper.Path.Rectangle(point1, point2);
+        //     rect.fillColor = new paper.Color(0, .3, 1, .4);
+        //     rect.strokeColor = new paper.Color(0, 0, 0);
+        //     rect.strokeWidth = 2;
+        //     rect.selected = true;
+        //     return rect;
+        // }
+
+    }]);
+
+    return MoveTool;
+}(MouseTool);
+
+exports.default = MoveTool;
+
+},{"../../core/registry":239,"../../utils/simpleQueue":252,"../ui/moveToolBar":294,"./MouseTool":278}],286:[function(require,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -48802,7 +49111,7 @@ var MultilayerPositionTool = function (_PositionTool) {
 
 module.exports = MultilayerPositionTool;
 
-},{"../../core/feature":228,"../../core/registry":239,"../../utils/simpleQueue":252,"../pageSetup":259,"./positionTool":287}],286:[function(require,module,exports){
+},{"../../core/feature":228,"../../core/registry":239,"../../utils/simpleQueue":252,"../pageSetup":259,"./positionTool":288}],287:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -48890,7 +49199,7 @@ var PanTool = function (_MouseTool) {
 
 module.exports = PanTool;
 
-},{"../../core/registry":239,"../../utils/simpleQueue":252,"./mouseTool":284}],287:[function(require,module,exports){
+},{"../../core/registry":239,"../../utils/simpleQueue":252,"./mouseTool":284}],288:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -48996,7 +49305,7 @@ var PositionTool = function (_MouseTool) {
 
 module.exports = PositionTool;
 
-},{"../../core/component":224,"../../core/feature":228,"../../core/registry":239,"../../utils/simpleQueue":252,"../pageSetup":259,"./mouseTool":284}],288:[function(require,module,exports){
+},{"../../core/component":224,"../../core/feature":228,"../../core/registry":239,"../../utils/simpleQueue":252,"../pageSetup":259,"./mouseTool":284}],289:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -49258,7 +49567,7 @@ var SelectTool = function (_MouseTool) {
 
 module.exports = SelectTool;
 
-},{"../../core/registry":239,"../../utils/simpleQueue":252,"../pageSetup":259,"./MouseTool":278}],289:[function(require,module,exports){
+},{"../../core/registry":239,"../../utils/simpleQueue":252,"../pageSetup":259,"./MouseTool":278}],290:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -49382,7 +49691,7 @@ var BorderSettingsDialog = function () {
 
 exports.default = BorderSettingsDialog;
 
-},{"../../core/registry":239,"dxf-parser":69}],290:[function(require,module,exports){
+},{"../../core/registry":239,"dxf-parser":69}],291:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -49536,7 +49845,7 @@ var ChangeAllDialog = function () {
 
 exports.default = ChangeAllDialog;
 
-},{}],291:[function(require,module,exports){
+},{}],292:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -49818,7 +50127,7 @@ var ComponentToolBar = function () {
 
 exports.default = ComponentToolBar;
 
-},{"../../utils/htmlUtils":250,"../colors":255}],292:[function(require,module,exports){
+},{"../../utils/htmlUtils":250,"../colors":255}],293:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -50069,9 +50378,167 @@ var LayerToolBar = function () {
 
 exports.default = LayerToolBar;
 
-},{"../../core/registry":239,"../../utils/htmlUtils":250,"../colors":255}],293:[function(require,module,exports){
+},{"../../core/registry":239,"../../utils/htmlUtils":250,"../colors":255}],294:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _htmlUtils = require("../../utils/htmlUtils");
+
+var HTMLUtils = _interopRequireWildcard(_htmlUtils);
+
+var _numberUtils = require("../../utils/numberUtils");
+
+var NumberUtils = _interopRequireWildcard(_numberUtils);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var MoveToolBar = function () {
+    function MoveToolBar(moveToolDelegate) {
+        _classCallCheck(this, MoveToolBar);
+
+        //Get the UI references
+
+        this.moveToolDelegate = moveToolDelegate;
+
+        this.__window = document.getElementById("moveBox");
+
+        //Action Buttons
+        this.__saveButton = this.__window.querySelector("#save-position");
+        this.__cancelButton = this.__window.querySelector("#cancel-edit-position");
+
+        //Text Inputs
+        this.__xPosInput = this.__window.querySelector("#textinput_xpos");
+        this.__yPosInput = this.__window.querySelector("#textinput_ypos");
+
+        //Input Buttons
+        this.__xPosUpButton = this.__window.querySelector("#button-xpos-up");
+        this.__xPosDownButton = this.__window.querySelector("#button-xpos-down");
+        this.__yPosUpButton = this.__window.querySelector("#button-ypos-up");
+        this.__yPosDownButton = this.__window.querySelector("#button-ypos-down");
+
+        var ref = this;
+
+        //Text input changes
+        this.__xPosInput.addEventListener('input', function (event) {
+            ref.processNewPosition();
+        });
+
+        this.__yPosInput.addEventListener('input', function (event) {
+            ref.processNewPosition();
+        });
+
+        //Position buttons
+        //Decrease x
+        this.__xPosDownButton.addEventListener('click', function (event) {
+            var value = ref.__xPosInput.value;
+            value = Number.parseFloat(value);
+            if (NumberUtils.isFloatOrInt(value)) {
+                value -= 0.1;
+                ref.__xPosInput.value = value;
+                ref.processNewPosition();
+            }
+        });
+
+        //increase x
+        this.__xPosUpButton.addEventListener('click', function (event) {
+            var value = ref.__xPosInput.value;
+            value = Number.parseFloat(value);
+            if (NumberUtils.isFloatOrInt(value)) {
+                value += 0.1;
+                ref.__xPosInput.value = value;
+                ref.processNewPosition();
+            }
+        });
+
+        //increase y
+        this.__yPosUpButton.addEventListener('click', function (event) {
+            var value = ref.__yPosInput.value;
+            value = Number.parseFloat(value);
+            if (NumberUtils.isFloatOrInt(value)) {
+                value += 0.1;
+                ref.__yPosInput.value = value;
+                ref.processNewPosition();
+            }
+        });
+
+        //decrease y
+        this.__yPosDownButton.addEventListener('click', function (event) {
+            var value = ref.__yPosInput.value;
+            value = Number.parseFloat(value);
+            if (NumberUtils.isFloatOrInt(value)) {
+                value -= 0.1;
+                ref.__yPosInput.value = value;
+                ref.processNewPosition();
+            }
+        });
+
+        //Action button clicks
+        this.__saveButton.addEventListener('click', function (event) {
+            console.log("Save button was pressed");
+            ref.hideWindow();
+            ref.moveToolDelegate.unactivate();
+        });
+
+        this.__cancelButton.addEventListener('click', function (event) {
+            console.log("Cancel Button was Pressed");
+            ref.moveToolDelegate.revertToOriginalPosition();
+            ref.hideWindow();
+            ref.moveToolDelegate.unactivate();
+        });
+    }
+
+    _createClass(MoveToolBar, [{
+        key: "showWindow",
+        value: function showWindow() {
+            HTMLUtils.removeClass(this.__window, "hidden-block");
+        }
+    }, {
+        key: "hideWindow",
+        value: function hideWindow() {
+            HTMLUtils.addClass(this.__window, "hidden-block");
+        }
+    }, {
+        key: "updateUIPos",
+        value: function updateUIPos(pos) {
+            this.__xPosInput.value = pos[0] / 1000;
+            this.__yPosInput.value = pos[1] / 1000;
+        }
+    }, {
+        key: "processNewPosition",
+        value: function processNewPosition() {
+            // console.log("input data", xpos, ypos);
+
+            var xpos = Number.parseFloat(this.__xPosInput.value);
+            var ypos = Number.parseFloat(this.__yPosInput.value);
+            //Check if the values are valid positions
+            if (!NumberUtils.isFloatOrInt(xpos) || !NumberUtils.isFloatOrInt(ypos)) {
+                console.log("test");
+                return;
+            }
+            //Convert values from mm in to microns
+            xpos *= 1000;
+            ypos *= 1000;
+
+            //Tell the moveTool to set the position as the x,y pos
+            this.moveToolDelegate.processUIPosition(xpos, ypos);
+        }
+    }]);
+
+    return MoveToolBar;
+}();
+
+exports.default = MoveToolBar;
+
+},{"../../utils/htmlUtils":250,"../../utils/numberUtils":251}],295:[function(require,module,exports){
 arguments[4][254][0].apply(exports,arguments)
-},{"../../core/feature":228,"../../core/parameters":233,"../../core/registry":239,"../../featureSets":248,"../../utils/htmlUtils":250,"dup":254}],294:[function(require,module,exports){
+},{"../../core/feature":228,"../../core/parameters":233,"../../core/registry":239,"../../featureSets":248,"../../utils/htmlUtils":250,"dup":254}],296:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -50187,7 +50654,7 @@ var ResolutionToolBar = function () {
 
 exports.default = ResolutionToolBar;
 
-},{"../../core/registry":239,"../grid/adaptiveGrid":257,"wnumb":222}],295:[function(require,module,exports){
+},{"../../core/registry":239,"../grid/adaptiveGrid":257,"wnumb":222}],297:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -50267,6 +50734,9 @@ var RightClickMenu = function () {
                 ref.__renameTextInput.value = ref.getComponentName();
             }
             ref.__renameIsVisible = !ref.__renameIsVisible;
+        });
+        this.__moveButton.addEventListener('click', function (event) {
+            ref.__activateMove();
         });
 
         //Save Rename
@@ -50350,6 +50820,14 @@ var RightClickMenu = function () {
             this.__renameIsVisible = false;
             HTMLUtils.addClass(this.__renameComponentTextField, 'collapse');
         }
+    }, {
+        key: "__activateMove",
+        value: function __activateMove() {
+            this.close();
+            Registry.viewManager.activateTool("MoveTool");
+            var component = Registry.currentDevice.getComponentForFeatureID(this.__featureRef.getID());
+            Registry.viewManager.tools["MoveTool"].activate(component);
+        }
     }]);
 
     return RightClickMenu;
@@ -50357,7 +50835,7 @@ var RightClickMenu = function () {
 
 exports.default = RightClickMenu;
 
-},{"../../utils/htmlUtils":250,"./parameterMenu":293}],296:[function(require,module,exports){
+},{"../../utils/htmlUtils":250,"./parameterMenu":295}],298:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -50385,7 +50863,7 @@ var RightPanel = function RightPanel() {
 
 exports.default = RightPanel;
 
-},{}],297:[function(require,module,exports){
+},{}],299:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -50475,7 +50953,7 @@ var ZoomToolBar = function () {
 
 exports.default = ZoomToolBar;
 
-},{"../../core/registry":239}],298:[function(require,module,exports){
+},{"../../core/registry":239}],300:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -50526,6 +51004,8 @@ var _layerToolBar2 = _interopRequireDefault(_layerToolBar);
 
 var _htmlUtils = require("../utils/htmlUtils");
 
+var HTMLUtils = _interopRequireWildcard(_htmlUtils);
+
 var _mouseAndKeyboardHandler = require("./mouseAndKeyboardHandler");
 
 var _mouseAndKeyboardHandler2 = _interopRequireDefault(_mouseAndKeyboardHandler);
@@ -50537,6 +51017,12 @@ var _componentToolBar2 = _interopRequireDefault(_componentToolBar);
 var _designHistory = require("./designHistory");
 
 var _designHistory2 = _interopRequireDefault(_designHistory);
+
+var _moveTool = require("./tools/moveTool");
+
+var _moveTool2 = _interopRequireDefault(_moveTool);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -51163,8 +51649,9 @@ var ViewManager = function () {
                 if (correctType.length > 0) {
                     this.adjustAllFeatureParams(valueString, value, correctType);
                 }
+            } else {
+                this.updateDefault(typeString, setString, valueString, value);
             }
-            //this.updateDefault(typeString, setString, valueString, value);
         }
     }, {
         key: "updateDefault",
@@ -51237,8 +51724,8 @@ var ViewManager = function () {
                 } else if (newCenterY > Registry.currentDevice.params.getValue("height")) {
                     newCenterY = Registry.currentDevice.params.getValue("height");
                 }
-                (0, _htmlUtils.setButtonColor)(button2D, Colors.getDefaultLayerColor(Registry.currentLayer), activeText);
-                (0, _htmlUtils.setButtonColor)(button3D, inactiveBackground, inactiveText);
+                HTMLUtils.setButtonColor(button2D, Colors.getDefaultLayerColor(Registry.currentLayer), activeText);
+                HTMLUtils.setButtonColor(button3D, inactiveBackground, inactiveText);
                 Registry.viewManager.setCenter(new paper.Point(newCenterX, newCenterY));
                 Registry.viewManager.setZoom(zoom);
                 HTMLUtils.addClass(renderBlock, "hidden-block");
@@ -51247,6 +51734,11 @@ var ViewManager = function () {
                 HTMLUtils.addClass(canvasBlock, "shown-block");
             }
         }
+
+        /**
+         * Closes the params window
+         */
+
     }, {
         key: "killParamsWindow",
         value: function killParamsWindow() {
@@ -51266,8 +51758,6 @@ var ViewManager = function () {
             var save = JSON.stringify(Registry.currentDevice.toInterchangeV1());
 
             this.undoStack.pushDesign(save);
-
-            console.log(this.undoStack.deviceData);
         }
     }, {
         key: "undo",
@@ -51279,6 +51769,12 @@ var ViewManager = function () {
                 var result = JSON.parse(previousdesign);
                 this.loadDeviceFromJSON(result);
             }
+        }
+    }, {
+        key: "resetToDefaultTool",
+        value: function resetToDefaultTool() {
+            this.activateTool("MouseSelectTool");
+            this.componentToolBar.setActiveButton("SelectButton");
         }
     }, {
         key: "setupTools",
@@ -51311,6 +51807,8 @@ var ViewManager = function () {
             this.tools["DropletGen"] = new ComponentPositionTool("DropletGen", "Basic");
             this.tools["Transition"] = new PositionTool("Transition", "Basic");
             this.tools["AlignmentMarks"] = new MultilayerPositionTool("AlignmentMarks", "Basic");
+
+            this.tools["MoveTool"] = new _moveTool2.default();
         }
     }]);
 
@@ -51319,4 +51817,4 @@ var ViewManager = function () {
 
 exports.default = ViewManager;
 
-},{"../core/device":225,"../core/dxfObject":226,"../core/edgeFeature":227,"../core/feature":228,"../core/registry":239,"../utils/SimpleQueue":249,"../utils/htmlUtils":250,"./PanAndZoom":253,"./designHistory":256,"./mouseAndKeyboardHandler":258,"./tools/ComponentPositionTool":277,"./tools/cellPositionTool":279,"./tools/channelTool":280,"./tools/connectionTool":281,"./tools/insertTextTool":282,"./tools/mouseSelectTool":283,"./tools/mouseTool":284,"./tools/multilayerPositionTool":285,"./tools/panTool":286,"./tools/positionTool":287,"./tools/selectTool":288,"./ui/borderSettingDialog":289,"./ui/changeAllDialog":290,"./ui/componentToolBar":291,"./ui/layerToolBar":292,"./ui/resolutionToolBar":294,"./ui/rightPanel":296,"./ui/zoomToolBar":297}]},{},[223]);
+},{"../core/device":225,"../core/dxfObject":226,"../core/edgeFeature":227,"../core/feature":228,"../core/registry":239,"../utils/SimpleQueue":249,"../utils/htmlUtils":250,"./PanAndZoom":253,"./designHistory":256,"./mouseAndKeyboardHandler":258,"./tools/ComponentPositionTool":277,"./tools/cellPositionTool":279,"./tools/channelTool":280,"./tools/connectionTool":281,"./tools/insertTextTool":282,"./tools/mouseSelectTool":283,"./tools/mouseTool":284,"./tools/moveTool":285,"./tools/multilayerPositionTool":286,"./tools/panTool":287,"./tools/positionTool":288,"./tools/selectTool":289,"./ui/borderSettingDialog":290,"./ui/changeAllDialog":291,"./ui/componentToolBar":292,"./ui/layerToolBar":293,"./ui/resolutionToolBar":296,"./ui/rightPanel":298,"./ui/zoomToolBar":299}]},{},[223]);
