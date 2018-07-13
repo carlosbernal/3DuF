@@ -5,22 +5,16 @@ var Registry = require("../core/registry");
 // var Device = require("../core/device");
 import Device from '../core/device';
 var ChannelTool = require("./tools/channelTool");
-var ConnectionTool = require("./tools/connectionTool");
-var MouseTool = require("./tools/mouseTool");
+
 var PanTool = require("./tools/panTool");
 var PanAndZoom = require("./PanAndZoom");
 var SelectTool = require("./tools/selectTool");
 var InsertTextTool = require("./tools/insertTextTool");
 var SimpleQueue = require("../utils/SimpleQueue");
-var PositionTool = require("./tools/positionTool");
-var ComponentPositionTool = require("./tools/ComponentPositionTool");
-var MultilayerPositionTool = require('./tools/multilayerPositionTool');
-var CellPositionTool = require('./tools/cellPositionTool');
 var MouseSelectTool = require('./tools/mouseSelectTool');
 
 import ResolutionToolBar from './ui/resolutionToolBar';
 import RightPanel from './ui/rightPanel';
-import Feature from '../core/feature';
 import DXFObject from '../core/dxfObject';
 import EdgeFeature from "../core/edgeFeature";
 import ChangeAllDialog from "./ui/changeAllDialog";
@@ -30,6 +24,12 @@ import MouseAndKeyboardHandler from "./mouseAndKeyboardHandler";
 import ComponentToolBar from "./ui/componentToolBar";
 import DesignHistory from "./designHistory";
 import MoveTool from "./tools/moveTool";
+import ComponentPositionTool from "./tools/componentPositionTool";
+import MultilayerPositionTool from "./tools/multilayerPositionTool";
+import CellPositionTool from "./tools/cellPositionTool";
+// import ValveInsertionTool from "./tools/valveInsertionTool";
+import PositionTool from "./tools/positionTool";
+import ConnectionTool from "./tools/connectionTool";
 
 export default class ViewManager {
     constructor(view) {
@@ -205,6 +205,8 @@ export default class ViewManager {
         this.view.removeLayer(levelindex * 3);
         this.view.removeLayer(levelindex * 3 + 1);
         this.view.removeLayer(levelindex * 3 + 2);
+        this.updateActiveLayer();
+        this.refresh();
     }
 
     removeLayer(layer, index, refresh = true) {
@@ -487,7 +489,10 @@ export default class ViewManager {
         this.updateGrid();
         this.updateDevice(Registry.currentDevice);
         this.refresh(true);
-        console.log(Registry.currentDevice.layers);
+        Registry.currentLayer = Registry.currentDevice.layers[0];
+        this.layerToolBar.setActiveLayer("0");
+        Registry.viewManager.updateActiveLayer();
+
     }
 
     removeFeaturesByPaperElements(paperElements) {
