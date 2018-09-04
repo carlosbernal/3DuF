@@ -1,7 +1,7 @@
 import MouseTool from "./mouseTool";
 import Connection from '../../core/connection';
 
-var Registry = require("../../core/registry");
+const Registry = require("../../core/registry");
 var SimpleQueue = require("../../utils/simpleQueue");
 import Feature from "../../core/feature";
 var PageSetup = require("../pageSetup");
@@ -134,17 +134,48 @@ export default class ConnectionTool extends MouseTool {
             feat.updateParameter("wayPoints", this.wayPoints);
             feat.updateParameter("segments", this.generateSegments());
             //Save the connection object
-            let connection = new Connection('Connection', feat.getParams(), Registry.currentDevice.generateNeWName('CHANNEL'), 'CHANNEL');
+            let connection = new Connection('Connection', feat.getParams(), Registry.currentDevice.generateNewName('CHANNEL'), 'CHANNEL');
             connection.addFeatureID(feat.getID());
             Registry.currentDevice.addConnection(connection);
 
             this.currentChannelID = null;
             this.wayPoints = [];
+            Registry.viewManager.saveDeviceState();
         } else {
             console.error("Something is wrong here, unable to finish the connection");
         }
 
+        Registry.viewManager.saveDeviceState();
+
+
     }
+
+    cleanup(){
+        console.log("Running Cleanup for the Connection Tool");
+
+        /*
+        Step 1 - Check the state
+        Step 2 - based on the state do the following
+            SOURCE - Do nothing, everything is good
+            WAYPOINT - 1) Reset the state to source 2) cleanup features 3) TBA
+            TARGET - Set the state to SOURCE and do nothing else
+         */
+        switch (this.__STATE) {
+            case "SOURCE":
+                console.log("Doing nothing");
+                break;
+            case "WAYPOINT":
+                console.warn("Implement cleanup");
+
+                break;
+            case "TARGET":
+                this.__STATE = "SOURCE";
+                this.dragging = false;
+                break;
+        }
+
+    }
+
 
     addWayPoint(event, isManhatten) {
         let point = MouseTool.getEventPosition(event);

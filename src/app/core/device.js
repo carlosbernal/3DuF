@@ -25,6 +25,18 @@ export default class Device {
         this.__valveMap = new Map();
     }
 
+    getName(){
+        return this.name.getValue();
+    }
+
+    /**
+     * Returns the list of layers in the device
+     * @return {Array}
+     */
+    getLayers(){
+        return this.layers;
+    }
+
     /**
      * Adds a connection to the device
      * @param connection
@@ -396,7 +408,7 @@ export default class Device {
         return null;
     }
 
-    generateNeWName(type) {
+    generateNewName(type) {
         if (this.__nameMap.has(type)) {
             let value = this.__nameMap.get(type);
             this.__nameMap.set(type, value + 1);

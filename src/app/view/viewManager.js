@@ -31,8 +31,9 @@ import ValveInsertionTool from "./tools/valveInsertionTool";
 import PositionTool from "./tools/positionTool";
 import ConnectionTool from "./tools/connectionTool";
 import GenerateArrayTool from "./tools/generateArrayTool";
-
-import {GREEN_500} from './colors';
+import CustomComponentManager from "./customComponentManager";
+import EditDeviceDialog from "./ui/editDeviceDialog";
+import ManufacturingPanel from "./ui/manufacturingPanel";
 
 export default class ViewManager {
     constructor(view) {
@@ -45,6 +46,10 @@ export default class ViewManager {
         this.resolutionToolBar = new ResolutionToolBar();
         this.borderDialog = new BorderSettingsDialog();
         this.layerToolBar = new LayerToolBar();
+        this.customComponentManager = new CustomComponentManager(this);
+        this.messageBox = document.querySelector('.mdl-js-snackbar');
+        this.editDeviceDialog = new EditDeviceDialog(this);
+
         let reference = this;
         this.updateQueue = new SimpleQueue(function() {
             reference.view.refresh();
@@ -69,6 +74,10 @@ export default class ViewManager {
         let func = function(event) {
             reference.adjustZoom(event.deltaY, reference.getEventPosition(event));
         };
+
+        this.manufacturingPanel = new ManufacturingPanel(this);
+
+
         this.view.setMouseWheelFunction(func);
         this.minZoom = .0001;
         this.maxZoom = 5;
@@ -687,8 +696,17 @@ export default class ViewManager {
      * Resets the tool to the default tool
      */
     resetToDefaultTool(){
+        this.cleanupActiveTools();
         this.activateTool("MouseSelectTool");
         this.componentToolBar.setActiveButton("SelectButton");
+    }
+
+    /**
+     * Runs cleanup method on the activated tools
+     */
+    cleanupActiveTools() {
+        this.mouseAndKeyboardHandler.leftMouseTool.cleanup();
+        this.mouseAndKeyboardHandler.rightMouseTool.cleanup();
     }
 
     /**
@@ -708,6 +726,15 @@ export default class ViewManager {
             connection.insertFeatureGap(boundingbox);
         }
 
+    }
+
+
+    showUIMessage(message){
+        this.messageBox.MaterialSnackbar.showSnackbar(
+            {
+                message: message
+            }
+        );
     }
 
     setupTools() {

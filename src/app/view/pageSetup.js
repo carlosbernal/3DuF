@@ -63,7 +63,6 @@ let view;
 
 let threeD = false;
 
-let saveDeviceSettingsButton = document.getElementById("accept_resize_button");
 
 let acceptTextButton = document.getElementById("accept_text_button");
 
@@ -125,42 +124,6 @@ function setupAppPage() {
     //Register all the button clicks here
 
 
-    saveDeviceSettingsButton.onclick = function(){
-
-        //Save the name
-        let devicename = document.getElementById("devicename_textinput").value;
-        if(devicename != "" || devicename != null){
-            console.log("test");
-            Registry.currentDevice.setName(devicename);
-        }
-
-        //Do the resizing
-        let xspan = document.getElementById("xspan_textinput").value;
-        let yspan = document.getElementById("yspan_textinput").value;
-        console.log("Resizing the device to: " + xspan + ", " +yspan);
-
-
-        if(xspan != "" && yspan != ""){
-
-            //Convert the dimensions to microns from mm
-            Registry.currentDevice.setXSpan(xspan*1000);
-            Registry.currentDevice.setYSpan(yspan*1000);
-
-            //Update the device borders
-            Registry.viewManager.generateBorder();
-
-            //Close the dialog
-            var dialog = document.querySelector('dialog');
-            dialog.close();
-
-            //Refresh the view
-            Registry.viewManager.view.initializeView();
-            Registry.viewManager.view.refresh();
-            // Registry.viewManager.view.updateGrid();
-            Registry.viewManager.view.updateAlignmentMarks();
-        }
-
-    };
 
 
     acceptTextButton.onclick = function(){
@@ -173,50 +136,6 @@ function setupAppPage() {
 
     // revertdefaultsButton.onclick = function() {
     //     Registry.viewManager.revertFeaturesToDefaults(Registry.viewManager.view.getSelectedFeatures());
-    //
-    // };
-/*
-    copyButton.onclick = function() {
-
-    }
-*/
-    //copyButton.onclick = function() {
-
-    //}
-
-    //Setup Tool Handlers
-    // flowButton.onclick = function() {
-    //     if (threeD) {
-    //         if (activeLayer == "0") renderer.toggleLayerView(0);
-    //         else renderer.showLayer(0);
-    //     }
-    //     Registry.currentLayer = Registry.currentDevice.layers[0];
-    //     setActiveLayer("0");
-    //     Registry.viewManager.updateActiveLayer();
-    //
-    // };
-    //
-    // controlButton.onclick = function() {
-    //     if (threeD) {
-    //         if (activeLayer == "1") renderer.toggleLayerView(1);
-    //         else renderer.showLayer(1);
-    //     }
-    //     Registry.currentLayer = Registry.currentDevice.layers[1];
-    //     setActiveLayer("1");
-    //     Registry.viewManager.updateActiveLayer();
-    // };
-
-
-    // cellsButton.onclick = function() {
-    //     if (threeD) {
-    //         if (activeLayer == "2") renderer.toggleLayerView(2);
-    //         else renderer.showLayer(2);
-    //     }
-    //     Registry.currentLayer = Registry.currentDevice.layers[2];
-    //     setActiveLayer("2");
-    //     Registry.viewManager.updateActiveLayer();
-    //     console.log("Adaptive Grid Min Spacing: " + Registry.currentGrid.minSpacing);
-    //     console.log("Adaptive Grid Max Spacing: " + Registry.currentGrid.maxSpacing);
     //
     // };
 
@@ -243,6 +162,7 @@ function setupAppPage() {
             saveAs(content, json.name + "_layers.zip");
         }
     */
+
     svgButton.onclick = function() {
         let svgs = Registry.viewManager.layersToSVGStrings();
         //let svg = paper.project.exportSVG({asString: true});

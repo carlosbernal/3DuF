@@ -125,6 +125,14 @@
             </div>
 
         </nav>
+
+        <span class="mdl-layout-title">Imported</span>
+        <nav class="mdl-navigation" id="feature-import-static">
+            <a id="show_import_dialog" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--raised feature-button mdl-button--colored" >Import</a>
+        </nav>
+        <nav class="mdl-navigation" id="feature-import-custom">
+        </nav>
+
         <span class="mdl-layout-title">Mix</span>
         <nav class="mdl-navigation" id="feature-mix">
 
@@ -267,6 +275,7 @@
         <nav class="mdl-navigation">
             <a id="interchange_button" class="mdl-button mdl-js-button mdl-js-ripple-effect view-button">JSON (.json)</a>
             <a id="svg_button" class="mdl-button mdl-js-button mdl-js-ripple-effect view-button">Vector Art (.svg)</a>
+            <a id="cnc_button" class="mdl-button mdl-js-button mdl-js-ripple-effect view-button">CNC (.svg)</a>
             <!-- <a id="stl_button" class="mdl-button mdl-js-button mdl-js-ripple-effect view-button">3D Model (.stl)</a>-->
         </nav>
         <a id="infobutton" class="popdown btn mdl-layout-title" title="About">About/Help</a>
@@ -539,6 +548,26 @@
     </div>
 </dialog>
 
+<dialog id="import_dialog" class="mdl-dialog">
+    <div class="mdl-card__title">
+        <h2 class="mdl-card__title-text">Drag and drop the DXF file on the canvas</h2>
+    </div>
+    <div class="mdl-dialog__content">
+        <canvas id="component_preview_canvas" tabindex="1" width="500" height="400"></canvas>
+    </div>
+    <form action="#">
+        <div class="mdl-textfield mdl-js-textfield" width="300px">
+            <input class="mdl-textfield__input" type="text" id="new_component_name">
+            <label class="mdl-textfield__label" for="new_component_name">Name...</label>
+        </div>
+    </form>
+    <br />
+    <div class="mdl-dialog__actions mdl-dialog__actions--full-width">
+        <button id="import_component_button" type="button" class="mdl-button">Import</button>
+        <button type="button" class="mdl-button close">Cancel</button>
+    </div>
+</dialog>
+
 <dialog id="edit_device_dialog" class="mdl-dialog">
     <div class="mdl-dialog__content">
         <!-- Textfield with Floating Label -->
@@ -599,7 +628,11 @@
         <h4>
             Drag Drop the DXF file containing border to import:
         </h4>
-        <input type="file" class="upload" id="dxf_input" />
+        <div class="mdl-dialog__content">
+            <canvas id="border_import_panel" tabindex="1" width="300" height="200"></canvas>
+            <br />
+            <input type="file" class="upload" id="dxf_input" />
+        </div>
     </div>
     <div class="mdl-dialog__actions mdl-dialog__actions--full-width">
         <button id="import_border_button" type="button" class="mdl-button">Import Border</button>
@@ -629,17 +662,10 @@
     </div>
 </dialog>
 <script>
-    var dialog = document.getElementById('edit_device_dialog');
-    var showModalButton = document.querySelector('#resize_button');
-    if (! dialog.showModal) {
-        dialogPolyfill.registerDialog(dialog);
-    }
-    showModalButton.addEventListener('click', function() {
-        dialog.showModal();
-    });
-    dialog.querySelector('.close').addEventListener('click', function() {
-        dialog.close();
-    });
+    // var dialog = document.getElementById('edit_device_dialog');
+    // if (! dialog.showModal) {
+    //     dialogPolyfill.registerDialog(dialog);
+    // }
 
     var helpdialog = document.querySelector('#help_dialog');
     var showhelpModalButton = document.querySelector('#infobutton');
@@ -671,7 +697,13 @@
 
 </script>
 
-<!--Templates-->
+
+<!--Snackbar for all user feedback-->
+<div aria-live="assertive" aria-atomic="true" aria-relevant="text" class="mdl-snackbar mdl-js-snackbar">
+    <div class="mdl-snackbar__text"></div>
+    <button type="button" class="mdl-snackbar__action"></button>
+</div>
+
 
 
 </body>
