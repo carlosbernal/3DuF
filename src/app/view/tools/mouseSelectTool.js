@@ -2,12 +2,12 @@ import RightClickMenu from "../ui/rightClickMenu";
 import MouseTool from "./mouseTool";
 
 var Registry = require("../../core/registry");
-var SimpleQueue = require("../../utils/simpleQueue");
+import SimpleQueue from "../../utils/simpleQueue";
 var PageSetup = require("../pageSetup");
 import paper from 'paper';
 
 
-class MouseSelectTool extends MouseTool {
+export default class MouseSelectTool extends MouseTool {
     constructor() {
         super();
         this.dragging = false;
@@ -94,7 +94,7 @@ class MouseSelectTool extends MouseTool {
                 rightclickmenu.show(event);
                 Registry.viewManager.rightClickMenu = rightclickmenu;
                 this.rightClickMenu = rightclickmenu;
-                // let func = PageSetup.paramsWindowFunction(feat.getType(), feat.getSet());
+                // let func = PageSetup.getParamsWindowCallbackFunction(feat.getType(), feat.getSet());
                 //func(event);
             } else {
                 this.deselectFeatures();
@@ -231,5 +231,3 @@ class MouseSelectTool extends MouseTool {
         return rect;
     }
 }
-
-module.exports = MouseSelectTool;

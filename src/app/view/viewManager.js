@@ -2,16 +2,16 @@ import ZoomToolBar from "./ui/zoomToolBar";
 import BorderSettingsDialog from './ui/borderSettingDialog';
 import paper from 'paper';
 
-var Registry = require("../core/registry");
+const Registry = require("../core/registry");
 // var Device = require("../core/device");
 import Device from '../core/device';
-var ChannelTool = require("./tools/channelTool");
+import ChannelTool from "./tools/channelTool"; //= require("./tools/channelTool");
 
-var PanAndZoom = require("./PanAndZoom");
-var SelectTool = require("./tools/selectTool");
-var InsertTextTool = require("./tools/insertTextTool");
-var SimpleQueue = require("../utils/SimpleQueue");
-var MouseSelectTool = require('./tools/mouseSelectTool');
+const PanAndZoom = require("./PanAndZoom");
+import SelectTool from "./tools/selectTool"; //= require("./tools/selectTool");
+import InsertTextTool from "./tools/insertTextTool"; //= require("./tools/insertTextTool");
+import SimpleQueue from "../utils/simpleQueue"; //= require("../utils/SimpleQueue");
+import MouseSelectTool from "./tools/mouseSelectTool"; //= require('./tools/mouseSelectTool');
 
 import ResolutionToolBar from './ui/resolutionToolBar';
 import RightPanel from './ui/rightPanel';
@@ -34,6 +34,8 @@ import GenerateArrayTool from "./tools/generateArrayTool";
 import CustomComponentManager from "./customComponentManager";
 import EditDeviceDialog from "./ui/editDeviceDialog";
 import ManufacturingPanel from "./ui/manufacturingPanel";
+import CustomComponentPositionTool from "./tools/customComponentPositionTool";
+import CustomComponent from "../core/customComponent";
 
 export default class ViewManager {
     constructor(view) {
@@ -41,12 +43,12 @@ export default class ViewManager {
         this.view = view;
         this.tools = {};
         this.rightMouseTool = new SelectTool();
-        this.rightPanel = new RightPanel();
+        this.customComponentManager = new CustomComponentManager(this);
+        this.rightPanel = new RightPanel(this);
         this.changeAllDialog = new ChangeAllDialog();
         this.resolutionToolBar = new ResolutionToolBar();
         this.borderDialog = new BorderSettingsDialog();
         this.layerToolBar = new LayerToolBar();
-        this.customComponentManager = new CustomComponentManager(this);
         this.messageBox = document.querySelector('.mdl-js-snackbar');
         this.editDeviceDialog = new EditDeviceDialog(this);
 
@@ -624,6 +626,9 @@ export default class ViewManager {
      * @param rightClickToolString
      */
     activateTool(toolString , rightClickToolString = "SelectTool") {
+        if(this.tools[toolString] == null){
+            throw new Error("Could not find tool with the matching string");
+        }
         this.mouseAndKeyboardHandler.leftMouseTool = this.tools[toolString];
         this.mouseAndKeyboardHandler.rightMouseTool = this.tools[rightClickToolString];
         this.mouseAndKeyboardHandler.updateViewMouseEvents();
@@ -771,5 +776,11 @@ export default class ViewManager {
         this.tools["MoveTool"] = new MoveTool();
         this.tools["GenerateArrayTool"] = new GenerateArrayTool();
 
+    }
+
+    addCustomComponentTool(identifier){
+        let customcomponent = this.customComponentManager.getCustomComponent(identifier);
+        this.tools[identifier] = new CustomComponentPositionTool(customcomponent, "Custom");
+        Registry.featureDefaults["Custom"][identifier] = CustomComponent.defaultParameterDefinitions().defaults;
     }
 }

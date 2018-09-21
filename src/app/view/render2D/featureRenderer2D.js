@@ -1,8 +1,11 @@
-var Colors = require("../colors");
+import * as DXFSolidObjectRenderer2D from "./dxfSolidObjectRenderer2D";
+
+const Colors = require("../colors");
 import Feature from "../../core/feature";
-var PrimitiveSets2D = require("./primitiveSets2D");
-var FeatureSets = require("../../featureSets");
-var Registry = require("../../core/registry");
+
+const PrimitiveSets2D = require("./primitiveSets2D");
+const FeatureSets = require("../../featureSets");
+const Registry = require("../../core/registry");
 import {renderEdgeFeature} from '../../view/render2D/dxfObjectRenderer2D';
 import paper from 'paper';
 
@@ -97,6 +100,7 @@ function renderText(feature){
 }
 
 function renderFeature(feature) {
+    let rendered;
     let params;
     let type = feature.getType();
     let set = feature.getSet();
@@ -108,6 +112,12 @@ function renderFeature(feature) {
     }
     if (type == "TEXT") {
         return renderText(feature);
+    } else if (set === "Custom") {
+        rendered = DXFSolidObjectRenderer2D.renderCustomComponentFeature(feature, getBaseColor(feature));
+        rendered.featureID = feature.getID();
+
+        return rendered;
+
     } else if (type === "EDGE") {
         return renderEdge(feature);
     } else {
@@ -118,7 +128,7 @@ function renderFeature(feature) {
         }
         primParams["color"] = getLayerColor(feature);
         primParams["baseColor"] = getBaseColor(feature);
-        let rendered = prim(primParams);
+        rendered = prim(primParams);
         rendered.featureID = feature.getID();
 
         return rendered;

@@ -2,7 +2,7 @@ import MoveToolBar from "../ui/moveToolBar";
 import MouseTool from "./mouseTool";
 
 var Registry = require("../../core/registry");
-var SimpleQueue = require("../../utils/simpleQueue");
+import SimpleQueue from "../../utils/simpleQueue";
 
 export default class MoveTool extends MouseTool {
     constructor() {
@@ -106,7 +106,7 @@ export default class MoveTool extends MouseTool {
         //         rightclickmenu.show(event);
         //         Registry.viewManager.rightClickMenu = rightclickmenu;
         //         this.rightClickMenu = rightclickmenu;
-        //         // let func = PageSetup.paramsWindowFunction(feat.getType(), feat.getSet());
+        //         // let func = PageSetup.getParamsWindowCallbackFunction(feat.getType(), feat.getSet());
         //         //func(event);
         //     } else {
         //         this.deselectFeatures();
